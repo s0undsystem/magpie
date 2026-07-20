@@ -64,9 +64,6 @@ INFERENCE
   identity provider: Okta (https://example.okta.com)
   mail security: mode=enforce dns_activated=true
 ```
-
-(the mascot banner also prints above this on every real run — trimmed here since it's already shown once at the top of this README)
-
 ## Install
 
 magpie isn't published anywhere yet — get the source and build it locally:
