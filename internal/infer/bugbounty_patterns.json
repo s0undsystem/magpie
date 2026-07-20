@@ -1,0 +1,9 @@
+[
+  { "platform": "HackerOne", "match": "hackerone.com" },
+  { "platform": "Bugcrowd", "match": "bugcrowd.com" },
+  { "platform": "Intigriti", "match": "intigriti.com" },
+  { "platform": "YesWeHack", "match": "yeswehack.com" },
+  { "platform": "Synack", "match": "synack.com" },
+  { "platform": "Open Bug Bounty", "match": "openbugbounty.org" },
+  { "platform": "Immunefi", "match": "immunefi.com" }
+]

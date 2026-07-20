@@ -15,6 +15,7 @@ var csvHeader = []string{
 	"findings_high", "findings_medium", "findings_low", "findings_info",
 	"identity_provider", "mail_security_mode", "mail_dns_activated",
 	"mobile_apps", "matrix_homeserver", "acme_present",
+	"bug_bounty_platform", "bug_bounty_url",
 }
 
 func CSV(w io.Writer, reports []report.Report, opts Options) error {
@@ -65,6 +66,11 @@ func csvRow(rep report.Report, opts Options) []string {
 	if inf.ACME != nil && inf.ACME.Present {
 		acmePresent = "true"
 	}
+	bugBountyPlatform, bugBountyURL := "", ""
+	if inf.BugBountyProgram != nil {
+		bugBountyPlatform = inf.BugBountyProgram.Platform
+		bugBountyURL = inf.BugBountyProgram.URL
+	}
 
 	return []string{
 		rep.Domain,
@@ -80,5 +86,7 @@ func csvRow(rep report.Report, opts Options) []string {
 		strings.Join(mobileParts, ";"),
 		matrixHomeserver,
 		acmePresent,
+		bugBountyPlatform,
+		bugBountyURL,
 	}
 }

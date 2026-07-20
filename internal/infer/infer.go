@@ -32,12 +32,18 @@ type ACME struct {
 	Present bool
 }
 
+type BugBountyProgram struct {
+	Platform string
+	URL      string
+}
+
 type Result struct {
 	IdentityProvider *IdentityProvider
 	MobileApps       []MobileApp
 	MailSecurity     *MailSecurity
 	Matrix           *MatrixHomeserver
 	ACME             *ACME
+	BugBountyProgram *BugBountyProgram
 }
 
 func Infer(snap correlate.Snapshot) Result {
@@ -48,6 +54,7 @@ func Infer(snap correlate.Snapshot) Result {
 	res.MailSecurity = inferMailSecurity(snap)
 	res.Matrix = inferMatrix(snap)
 	res.ACME = inferACME(snap)
+	res.BugBountyProgram = inferBugBountyProgram(snap)
 
 	return res
 }
@@ -112,4 +119,26 @@ func inferMatrix(snap correlate.Snapshot) *MatrixHomeserver {
 func inferACME(snap correlate.Snapshot) *ACME {
 	d, ok := snap.Docs["acme-challenge"]
 	return &ACME{Present: ok && d.Presence == scan.PresencePresent}
+}
+
+func inferBugBountyProgram(snap correlate.Snapshot) *BugBountyProgram {
+	d, ok := snap.Docs["security.txt"]
+	if !ok || d.Presence != scan.PresencePresent {
+		return nil
+	}
+	contacts, ok := d.Facts["contact_values"]
+	if !ok || contacts == "" {
+		return nil
+	}
+	for _, c := range strings.Split(contacts, "|") {
+		c = strings.TrimSpace(c)
+		lower := strings.ToLower(c)
+		if !strings.HasPrefix(lower, "http://") && !strings.HasPrefix(lower, "https://") {
+			continue
+		}
+		if platform, matched := MatchBugBountyPlatform(c); matched {
+			return &BugBountyProgram{Platform: platform, URL: c}
+		}
+	}
+	return nil
 }

@@ -225,6 +225,10 @@ func renderInference(inf infer.Result, base, muted lipgloss.Style) string {
 		b.WriteString("  acme/cert automation: present\n")
 		wroteAny = true
 	}
+	if inf.BugBountyProgram != nil {
+		fmt.Fprintf(&b, "  bug bounty platform: %s (%s)\n", inf.BugBountyProgram.Platform, inf.BugBountyProgram.URL)
+		wroteAny = true
+	}
 	if !wroteAny {
 		b.WriteString(muted.Render("  nothing inferred") + "\n")
 	}

@@ -74,6 +74,10 @@ func Markdown(w io.Writer, rep report.Report, opts Options) error {
 		b.WriteString("- **ACME/cert automation**: present\n")
 		wroteAny = true
 	}
+	if inf.BugBountyProgram != nil {
+		fmt.Fprintf(&b, "- **Bug bounty platform**: %s (`%s`)\n", inf.BugBountyProgram.Platform, inf.BugBountyProgram.URL)
+		wroteAny = true
+	}
 	if !wroteAny {
 		b.WriteString("Nothing inferred.\n")
 	}

@@ -170,6 +170,9 @@ to the embedded copy, add an entry with `path`, `reference`, `status`,
 - `internal/infer/idp_patterns.json` — substring patterns matched against an
   `openid-configuration` issuer URL, first match wins. List more specific
   patterns before broader ones.
+- `internal/infer/bugbounty_patterns.json` — substring patterns matched
+  against `security.txt` `Contact` URLs to identify which bug bounty
+  platform (if any) a program runs on. Same first-match-wins rule.
 - `internal/compare/corpus.json` — the `--compare` reference sample. Its
   `methodology` field documents how to refresh it with real measurements
   instead of editorial judgment; please update `methodology` and `updated`
