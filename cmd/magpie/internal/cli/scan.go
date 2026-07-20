@@ -20,30 +20,31 @@ import (
 // Most of these are wired up in later build steps; they are declared now so
 // the CLI surface and --help output are stable from the start.
 type scanFlags struct {
-	file          string
-	concurrency   int
-	timeoutSecs   int
-	minSeverity   string
-	minConfidence string
-	category      []string
-	rulesFile     string
-	json          bool
-	md            bool
-	sarif         bool
-	csv           bool
-	compare       bool
-	timing        bool
-	noTimestamps  bool
-	noColor       bool
-	fix           bool
-	save          bool
-	diff          bool
-	exitCode      bool
-	watch         bool
-	interval      string
-	webhook       string
-	ct            bool
-	ctLimit       int
+	file              string
+	concurrency       int
+	globalConcurrency int
+	timeoutSecs       int
+	minSeverity       string
+	minConfidence     string
+	category          []string
+	rulesFile         string
+	json              bool
+	md                bool
+	sarif             bool
+	csv               bool
+	compare           bool
+	timing            bool
+	noTimestamps      bool
+	noColor           bool
+	fix               bool
+	save              bool
+	diff              bool
+	exitCode          bool
+	watch             bool
+	interval          string
+	webhook           string
+	ct                bool
+	ctLimit           int
 }
 
 var scan scanFlags
@@ -52,6 +53,7 @@ func addScanFlags(cmd *cobra.Command) {
 	f := cmd.Flags()
 	f.StringVarP(&scan.file, "file", "f", "", "read newline-delimited domains from a file for batch mode")
 	f.IntVar(&scan.concurrency, "concurrency", 10, "parallel requests per host")
+	f.IntVar(&scan.globalConcurrency, "global-concurrency", 5, "parallel domains scanned at once in batch mode (-f), independent of --concurrency")
 	f.IntVar(&scan.timeoutSecs, "timeout", 10, "per-request timeout in seconds")
 	f.StringVar(&scan.minSeverity, "min-severity", "info", "minimum severity to report (info, low, medium, high)")
 	f.StringVar(&scan.minConfidence, "min-confidence", "inferred", "minimum confidence to report (certain, likely, inferred)")
@@ -78,7 +80,7 @@ func addScanFlags(cmd *cobra.Command) {
 
 func runScan(cmd *cobra.Command, args []string) error {
 	if scan.file != "" {
-		return fmt.Errorf("batch mode (-f) is not implemented yet")
+		return runBatch(cmd, scan.file)
 	}
 	if len(args) == 0 {
 		return cmd.Help()

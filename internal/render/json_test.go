@@ -69,6 +69,24 @@ func TestJSONDoesNotMutateOriginalReport(t *testing.T) {
 	}
 }
 
+func TestJSONLineIsSingleLine(t *testing.T) {
+	var buf bytes.Buffer
+	if err := JSONLine(&buf, fixtureReport(), Options{}); err != nil {
+		t.Fatal(err)
+	}
+	trimmed := bytes.TrimRight(buf.Bytes(), "\n")
+	if bytes.Contains(trimmed, []byte("\n")) {
+		t.Errorf("JSONLine output contains an internal newline:\n%s", buf.String())
+	}
+	var decoded report.Report
+	if err := json.Unmarshal(buf.Bytes(), &decoded); err != nil {
+		t.Fatalf("output did not decode as a Report: %v", err)
+	}
+	if decoded.Domain != "example.org" {
+		t.Errorf("Domain = %q", decoded.Domain)
+	}
+}
+
 func TestJSONDeterministic(t *testing.T) {
 	rep := fixtureReport()
 	rep.ScannedAt = time.Time{} // hold timestamp fixed so we compare full bytes
