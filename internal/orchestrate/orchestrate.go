@@ -8,6 +8,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/harborproject/magpie/internal/correlate"
@@ -116,7 +117,14 @@ func Run(ctx context.Context, host string, opts Options) (report.Report, error) 
 
 	inference := infer.Infer(snap)
 
-	return report.Build(host, scannedAt, results, ctrl, findings, inference), nil
+	var expiresDays *int
+	if v, ok := snap.Docs["security.txt"].Facts["expires_days_remaining"]; ok {
+		if n, err := strconv.Atoi(v); err == nil {
+			expiresDays = &n
+		}
+	}
+
+	return report.Build(host, scannedAt, results, ctrl, findings, inference, expiresDays), nil
 }
 
 // auxFetcher returns a validate.AuxFetcher performing exactly one GET

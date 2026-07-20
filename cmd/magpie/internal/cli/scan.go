@@ -12,6 +12,7 @@ import (
 	"github.com/harborproject/magpie/internal/orchestrate"
 	"github.com/harborproject/magpie/internal/render"
 	"github.com/harborproject/magpie/internal/report"
+	"github.com/harborproject/magpie/internal/snapshot"
 	"github.com/harborproject/magpie/internal/version"
 )
 
@@ -119,6 +120,17 @@ func runScan(cmd *cobra.Command, args []string) error {
 	}
 
 	out := cmd.OutOrStdout()
+
+	if scan.diff {
+		return runDiff(cmd, rep)
+	}
+
+	if scan.save {
+		if _, err := snapshot.Save(rep); err != nil {
+			return fmt.Errorf("saving snapshot: %w", err)
+		}
+	}
+
 	switch {
 	case scan.json:
 		return render.JSON(out, rep, renderOpts)
@@ -129,6 +141,36 @@ func runScan(cmd *cobra.Command, args []string) error {
 	default:
 		return render.Terminal(out, rep, renderOpts)
 	}
+}
+
+// runDiff implements --diff: compare rep against the most recent saved
+// snapshot for its domain and print only what changed. If --save was also
+// passed, the previous snapshot is loaded before the new one is written so
+// the diff isn't comparing rep against itself.
+func runDiff(cmd *cobra.Command, rep report.Report) error {
+	prev, ok, err := snapshot.Latest(rep.Domain)
+	if err != nil {
+		return fmt.Errorf("loading previous snapshot: %w", err)
+	}
+
+	if scan.save {
+		if _, err := snapshot.Save(rep); err != nil {
+			return fmt.Errorf("saving snapshot: %w", err)
+		}
+	}
+
+	if !ok {
+		fmt.Fprintln(cmd.ErrOrStderr(), "no previous snapshot found; nothing to diff against (use --save to start tracking)")
+		return nil
+	}
+
+	d := snapshot.Compute(prev, rep)
+	fmt.Fprint(cmd.OutOrStdout(), d.RenderText())
+
+	if scan.exitCode && d.HasNewMediumOrHigher() {
+		os.Exit(1)
+	}
+	return nil
 }
 
 func buildFilter() (finding.Filter, error) {

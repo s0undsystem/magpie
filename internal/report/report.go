@@ -39,11 +39,16 @@ type Report struct {
 	Paths         []PathResult      `json:"paths"`
 	Findings      []finding.Finding `json:"findings"`
 	Inference     infer.Result      `json:"inference"`
+	// SecurityTxtExpiresDaysRemaining mirrors security.txt's
+	// expires_days_remaining fact, kept on the report (rather than only in
+	// validator facts) so --diff can report Expires countdown movement
+	// between snapshots without re-parsing security.txt.
+	SecurityTxtExpiresDaysRemaining *int `json:"security_txt_expires_days_remaining,omitempty"`
 }
 
 // Build assembles a Report from raw scan results and already-computed
 // findings/inference, sorting paths and findings deterministically.
-func Build(domain string, scannedAt time.Time, results []scan.Result, ctrl scan.Control, findings []finding.Finding, inference infer.Result) Report {
+func Build(domain string, scannedAt time.Time, results []scan.Result, ctrl scan.Control, findings []finding.Finding, inference infer.Result, expiresDaysRemaining *int) Report {
 	paths := make([]PathResult, 0, len(results))
 	for _, r := range results {
 		paths = append(paths, PathResult{
@@ -64,13 +69,14 @@ func Build(domain string, scannedAt time.Time, results []scan.Result, ctrl scan.
 	finding.Sort(sorted)
 
 	return Report{
-		SchemaVersion: SchemaVersion,
-		Domain:        domain,
-		ScannedAt:     scannedAt,
-		Control:       ctrl,
-		Paths:         paths,
-		Findings:      sorted,
-		Inference:     inference,
+		SchemaVersion:                   SchemaVersion,
+		Domain:                          domain,
+		ScannedAt:                       scannedAt,
+		Control:                         ctrl,
+		Paths:                           paths,
+		Findings:                        sorted,
+		Inference:                       inference,
+		SecurityTxtExpiresDaysRemaining: expiresDaysRemaining,
 	}
 }
 
