@@ -1,0 +1,4 @@
+/magpie
+/dist/
+*.test
+.DS_Store
