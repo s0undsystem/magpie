@@ -14,7 +14,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/harborproject/magpie/internal/registry"
+	"github.com/s0undsystem/magpie/internal/registry"
 )
 
 type Config struct {

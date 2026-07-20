@@ -5,8 +5,8 @@ import (
 	"io"
 	"strings"
 
-	"github.com/harborproject/magpie/internal/finding"
-	"github.com/harborproject/magpie/internal/report"
+	"github.com/s0undsystem/magpie/internal/finding"
+	"github.com/s0undsystem/magpie/internal/report"
 )
 
 func Markdown(w io.Writer, rep report.Report, opts Options) error {

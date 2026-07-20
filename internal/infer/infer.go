@@ -3,8 +3,8 @@ package infer
 import (
 	"strings"
 
-	"github.com/harborproject/magpie/internal/correlate"
-	"github.com/harborproject/magpie/internal/scan"
+	"github.com/s0undsystem/magpie/internal/correlate"
+	"github.com/s0undsystem/magpie/internal/scan"
 )
 
 type IdentityProvider struct {

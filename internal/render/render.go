@@ -1,7 +1,7 @@
 package render
 
 import (
-	"github.com/harborproject/magpie/internal/finding"
+	"github.com/s0undsystem/magpie/internal/finding"
 )
 
 type Options struct {

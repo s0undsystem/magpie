@@ -6,7 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/harborproject/magpie/internal/snapshot"
+	"github.com/s0undsystem/magpie/internal/snapshot"
 )
 
 func TestPostWebhookSendsJSON(t *testing.T) {

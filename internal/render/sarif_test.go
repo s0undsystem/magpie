@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/harborproject/magpie/internal/finding"
+	"github.com/s0undsystem/magpie/internal/finding"
 )
 
 func TestSARIFValidJSONStructure(t *testing.T) {

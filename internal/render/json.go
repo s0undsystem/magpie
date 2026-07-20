@@ -5,7 +5,7 @@ import (
 	"io"
 	"time"
 
-	"github.com/harborproject/magpie/internal/report"
+	"github.com/s0undsystem/magpie/internal/report"
 )
 
 func prepareForJSON(rep report.Report, opts Options) report.Report {

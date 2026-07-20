@@ -3,7 +3,7 @@ package validate
 import (
 	"encoding/json"
 
-	"github.com/harborproject/magpie/internal/scan"
+	"github.com/s0undsystem/magpie/internal/scan"
 )
 
 func init() {

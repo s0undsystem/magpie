@@ -4,9 +4,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/harborproject/magpie/internal/finding"
-	"github.com/harborproject/magpie/internal/report"
-	"github.com/harborproject/magpie/internal/scan"
+	"github.com/s0undsystem/magpie/internal/finding"
+	"github.com/s0undsystem/magpie/internal/report"
+	"github.com/s0undsystem/magpie/internal/scan"
 )
 
 func ptr(i int) *int { return &i }

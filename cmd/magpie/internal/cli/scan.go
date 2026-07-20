@@ -8,12 +8,12 @@ import (
 	"github.com/mattn/go-isatty"
 	"github.com/spf13/cobra"
 
-	"github.com/harborproject/magpie/internal/finding"
-	"github.com/harborproject/magpie/internal/orchestrate"
-	"github.com/harborproject/magpie/internal/render"
-	"github.com/harborproject/magpie/internal/report"
-	"github.com/harborproject/magpie/internal/snapshot"
-	"github.com/harborproject/magpie/internal/version"
+	"github.com/s0undsystem/magpie/internal/finding"
+	"github.com/s0undsystem/magpie/internal/orchestrate"
+	"github.com/s0undsystem/magpie/internal/render"
+	"github.com/s0undsystem/magpie/internal/report"
+	"github.com/s0undsystem/magpie/internal/snapshot"
+	"github.com/s0undsystem/magpie/internal/version"
 )
 
 type scanFlags struct {

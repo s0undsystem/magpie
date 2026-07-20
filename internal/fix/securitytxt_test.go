@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/harborproject/magpie/internal/scan"
-	"github.com/harborproject/magpie/internal/validate"
+	"github.com/s0undsystem/magpie/internal/scan"
+	"github.com/s0undsystem/magpie/internal/validate"
 )
 
 var fixedNow = time.Date(2026, 1, 15, 12, 0, 0, 0, time.UTC)

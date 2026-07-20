@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/harborproject/magpie/internal/registry"
+	"github.com/s0undsystem/magpie/internal/registry"
 )
 
 func testEntries() []registry.Entry {
@@ -286,7 +286,7 @@ func TestUserAgentSent(t *testing.T) {
 	srv := httptest.NewServer(mux)
 	defer srv.Close()
 
-	ua := "magpie/1.2.3 (+https://github.com/harborproject/magpie)"
+	ua := "magpie/1.2.3 (+https://github.com/s0undsystem/magpie)"
 	f := New(fastConfig(ua))
 	if _, _, err := f.Scan(context.Background(), srv.URL, testEntries()); err != nil {
 		t.Fatalf("Scan() error = %v", err)

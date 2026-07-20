@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/harborproject/magpie/cmd/magpie/internal/cli"
+	"github.com/s0undsystem/magpie/cmd/magpie/internal/cli"
 )
 
 func main() {

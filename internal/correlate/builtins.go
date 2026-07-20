@@ -5,8 +5,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/harborproject/magpie/internal/finding"
-	"github.com/harborproject/magpie/internal/scan"
+	"github.com/s0undsystem/magpie/internal/finding"
+	"github.com/s0undsystem/magpie/internal/scan"
 )
 
 func registerBuiltins(e *Engine) {

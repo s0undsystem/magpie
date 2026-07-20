@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/harborproject/magpie/internal/validate"
+	"github.com/s0undsystem/magpie/internal/validate"
 )
 
 const OneYear = 365 * 24 * time.Hour

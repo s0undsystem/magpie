@@ -3,9 +3,9 @@ package correlate
 import (
 	"testing"
 
-	"github.com/harborproject/magpie/internal/finding"
-	"github.com/harborproject/magpie/internal/scan"
-	"github.com/harborproject/magpie/internal/validate"
+	"github.com/s0undsystem/magpie/internal/finding"
+	"github.com/s0undsystem/magpie/internal/scan"
+	"github.com/s0undsystem/magpie/internal/validate"
 )
 
 func snap(docs map[string]DocFacts) Snapshot {

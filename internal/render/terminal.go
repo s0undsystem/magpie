@@ -10,12 +10,12 @@ import (
 	"github.com/charmbracelet/lipgloss/table"
 	"github.com/muesli/termenv"
 
-	"github.com/harborproject/magpie/internal/banner"
-	"github.com/harborproject/magpie/internal/compare"
-	"github.com/harborproject/magpie/internal/finding"
-	"github.com/harborproject/magpie/internal/infer"
-	"github.com/harborproject/magpie/internal/report"
-	"github.com/harborproject/magpie/internal/scan"
+	"github.com/s0undsystem/magpie/internal/banner"
+	"github.com/s0undsystem/magpie/internal/compare"
+	"github.com/s0undsystem/magpie/internal/finding"
+	"github.com/s0undsystem/magpie/internal/infer"
+	"github.com/s0undsystem/magpie/internal/report"
+	"github.com/s0undsystem/magpie/internal/scan"
 )
 
 var (

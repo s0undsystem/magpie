@@ -9,7 +9,7 @@ import (
 	"github.com/mattn/go-isatty"
 	"github.com/muesli/termenv"
 
-	"github.com/harborproject/magpie/internal/banner"
+	"github.com/s0undsystem/magpie/internal/banner"
 )
 
 var bannerColor = lipgloss.Color("6")

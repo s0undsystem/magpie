@@ -6,8 +6,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/harborproject/magpie/internal/registry"
-	"github.com/harborproject/magpie/internal/version"
+	"github.com/s0undsystem/magpie/internal/registry"
+	"github.com/s0undsystem/magpie/internal/version"
 	"github.com/spf13/cobra"
 )
 

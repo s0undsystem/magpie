@@ -1,5 +1,5 @@
 BINARY := magpie
-MODULE := github.com/harborproject/magpie
+MODULE := github.com/s0undsystem/magpie
 VERSION := $(shell git describe --tags --always --dirty 2>/dev/null || echo dev)
 LDFLAGS := -X '$(MODULE)/internal/version.Version=$(VERSION)'
 

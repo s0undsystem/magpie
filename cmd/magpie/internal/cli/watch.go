@@ -13,8 +13,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/harborproject/magpie/internal/orchestrate"
-	"github.com/harborproject/magpie/internal/snapshot"
+	"github.com/s0undsystem/magpie/internal/orchestrate"
+	"github.com/s0undsystem/magpie/internal/snapshot"
 )
 
 func runWatch(cmd *cobra.Command, host string, opts orchestrate.Options) error {

@@ -3,7 +3,7 @@ package explain
 import (
 	"sort"
 
-	"github.com/harborproject/magpie/internal/finding"
+	"github.com/s0undsystem/magpie/internal/finding"
 )
 
 type Doc struct {

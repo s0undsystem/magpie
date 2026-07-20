@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"sort"
 
-	"github.com/harborproject/magpie/internal/registry"
-	"github.com/harborproject/magpie/internal/report"
+	"github.com/s0undsystem/magpie/internal/registry"
+	"github.com/s0undsystem/magpie/internal/report"
 )
 
 const timestampLayout = "20060102T150405Z"

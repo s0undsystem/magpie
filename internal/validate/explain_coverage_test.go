@@ -3,7 +3,7 @@ package validate
 import (
 	"testing"
 
-	"github.com/harborproject/magpie/internal/explain"
+	"github.com/s0undsystem/magpie/internal/explain"
 )
 
 func TestEveryValidatorFindingIDHasExplainDoc(t *testing.T) {

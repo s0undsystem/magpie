@@ -3,7 +3,7 @@ package cli
 import (
 	"fmt"
 
-	"github.com/harborproject/magpie/internal/registry"
+	"github.com/s0undsystem/magpie/internal/registry"
 	"github.com/spf13/cobra"
 )
 

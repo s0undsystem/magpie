@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/harborproject/magpie/internal/report"
+	"github.com/s0undsystem/magpie/internal/report"
 )
 
 func TestCSVHeaderAndRow(t *testing.T) {

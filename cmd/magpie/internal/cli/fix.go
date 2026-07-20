@@ -6,10 +6,10 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/harborproject/magpie/internal/fix"
-	"github.com/harborproject/magpie/internal/orchestrate"
-	scanpkg "github.com/harborproject/magpie/internal/scan"
-	"github.com/harborproject/magpie/internal/validate"
+	"github.com/s0undsystem/magpie/internal/fix"
+	"github.com/s0undsystem/magpie/internal/orchestrate"
+	scanpkg "github.com/s0undsystem/magpie/internal/scan"
+	"github.com/s0undsystem/magpie/internal/validate"
 )
 
 func runFix(cmd *cobra.Command, host string, opts orchestrate.Options) error {

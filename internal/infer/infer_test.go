@@ -4,9 +4,9 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/harborproject/magpie/internal/correlate"
-	"github.com/harborproject/magpie/internal/scan"
-	"github.com/harborproject/magpie/internal/validate"
+	"github.com/s0undsystem/magpie/internal/correlate"
+	"github.com/s0undsystem/magpie/internal/scan"
+	"github.com/s0undsystem/magpie/internal/validate"
 )
 
 func snap(docs map[string]correlate.DocFacts) correlate.Snapshot {

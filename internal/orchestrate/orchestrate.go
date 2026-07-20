@@ -9,13 +9,13 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/harborproject/magpie/internal/correlate"
-	"github.com/harborproject/magpie/internal/finding"
-	"github.com/harborproject/magpie/internal/infer"
-	"github.com/harborproject/magpie/internal/registry"
-	"github.com/harborproject/magpie/internal/report"
-	"github.com/harborproject/magpie/internal/scan"
-	"github.com/harborproject/magpie/internal/validate"
+	"github.com/s0undsystem/magpie/internal/correlate"
+	"github.com/s0undsystem/magpie/internal/finding"
+	"github.com/s0undsystem/magpie/internal/infer"
+	"github.com/s0undsystem/magpie/internal/registry"
+	"github.com/s0undsystem/magpie/internal/report"
+	"github.com/s0undsystem/magpie/internal/scan"
+	"github.com/s0undsystem/magpie/internal/validate"
 )
 
 type Options struct {

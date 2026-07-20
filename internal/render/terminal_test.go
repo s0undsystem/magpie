@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/harborproject/magpie/internal/finding"
+	"github.com/s0undsystem/magpie/internal/finding"
 )
 
 func TestTerminalNoColorHasNoEscapeCodes(t *testing.T) {

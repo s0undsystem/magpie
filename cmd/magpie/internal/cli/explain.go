@@ -6,8 +6,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/harborproject/magpie/internal/correlate"
-	"github.com/harborproject/magpie/internal/explain"
+	"github.com/s0undsystem/magpie/internal/correlate"
+	"github.com/s0undsystem/magpie/internal/explain"
 )
 
 func newExplainCmd() *cobra.Command {

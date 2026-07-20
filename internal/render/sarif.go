@@ -5,11 +5,11 @@ import (
 	"io"
 	"sort"
 
-	"github.com/harborproject/magpie/internal/correlate"
-	"github.com/harborproject/magpie/internal/explain"
-	"github.com/harborproject/magpie/internal/finding"
-	"github.com/harborproject/magpie/internal/report"
-	"github.com/harborproject/magpie/internal/version"
+	"github.com/s0undsystem/magpie/internal/correlate"
+	"github.com/s0undsystem/magpie/internal/explain"
+	"github.com/s0undsystem/magpie/internal/finding"
+	"github.com/s0undsystem/magpie/internal/report"
+	"github.com/s0undsystem/magpie/internal/version"
 )
 
 func lookupDoc(id string, engine *correlate.Engine) explain.Doc {
@@ -155,7 +155,7 @@ func SARIF(w io.Writer, rep report.Report, opts Options) error {
 			Tool: sarifTool{Driver: sarifDriver{
 				Name:           "magpie",
 				Version:        version.Version,
-				InformationURI: "https://github.com/harborproject/magpie",
+				InformationURI: "https://github.com/s0undsystem/magpie",
 				Rules:          rules,
 			}},
 			Results: results,

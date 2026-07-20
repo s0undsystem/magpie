@@ -3,7 +3,7 @@ package validate
 import (
 	"testing"
 
-	"github.com/harborproject/magpie/internal/scan"
+	"github.com/s0undsystem/magpie/internal/scan"
 )
 
 func TestChangePasswordValidator_Path(t *testing.T) {

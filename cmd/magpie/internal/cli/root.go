@@ -1,7 +1,7 @@
 package cli
 
 import (
-	"github.com/harborproject/magpie/internal/version"
+	"github.com/s0undsystem/magpie/internal/version"
 	"github.com/spf13/cobra"
 )
 

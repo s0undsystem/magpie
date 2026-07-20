@@ -1,4 +1,4 @@
-module github.com/harborproject/magpie
+module github.com/s0undsystem/magpie
 
 go 1.26.5
 

@@ -4,9 +4,9 @@ import (
 	"sort"
 	"time"
 
-	"github.com/harborproject/magpie/internal/finding"
-	"github.com/harborproject/magpie/internal/infer"
-	"github.com/harborproject/magpie/internal/scan"
+	"github.com/s0undsystem/magpie/internal/finding"
+	"github.com/s0undsystem/magpie/internal/infer"
+	"github.com/s0undsystem/magpie/internal/scan"
 )
 
 const SchemaVersion = 1

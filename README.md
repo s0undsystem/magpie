@@ -47,14 +47,12 @@ INFERENCE
   mail security: mode=enforce dns_activated=true
 ```
 
-*(a terminal recording / screenshot belongs here — `docs/demo.gif`)*
-
 ## Install
 
 magpie isn't published anywhere yet — get the source and build it locally:
 
 ```sh
-git clone <this-repo-url>
+git clone https://github.com/s0undsystem/magpie.git
 cd magpie
 make build      # -> bin/magpie
 ```

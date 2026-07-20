@@ -8,8 +8,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/harborproject/magpie/internal/ct"
-	"github.com/harborproject/magpie/internal/orchestrate"
+	"github.com/s0undsystem/magpie/internal/ct"
+	"github.com/s0undsystem/magpie/internal/orchestrate"
 )
 
 func runCT(cmd *cobra.Command, host string, opts orchestrate.Options) error {
