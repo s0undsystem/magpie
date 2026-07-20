@@ -78,13 +78,10 @@ func init() {
 	})
 }
 
-// SecurityTxtValidator validates /.well-known/security.txt against RFC 9116.
 type SecurityTxtValidator struct{}
 
 func (SecurityTxtValidator) Path() string { return "security.txt" }
 
-// knownSecurityTxtFields are the fields defined by RFC 9116 §2.5 plus the
-// CSAF extension registered in the IANA "security.txt fields" registry.
 var knownSecurityTxtFields = map[string]bool{
 	"Contact":             true,
 	"Expires":             true,
@@ -102,7 +99,7 @@ var fieldLineRe = regexp.MustCompile(`^([A-Za-z][A-Za-z-]*)\s*:\s*(.*)$`)
 type sectxtLine struct {
 	LineNo    int
 	Raw       string
-	Name      string // canonical field name, "" if not a field line
+	Name      string
 	Value     string
 	Malformed bool
 	Comment   bool
@@ -111,9 +108,9 @@ type sectxtLine struct {
 
 type parsedSecurityTxt struct {
 	Lines               []sectxtLine
-	Fields              map[string][]string // canonical name -> values in file order
+	Fields              map[string][]string
 	HasSignature        bool
-	SignatureType       string // "clearsign", "detached", ""
+	SignatureType       string
 	FieldAfterSignature bool
 }
 
@@ -123,8 +120,7 @@ func canonicalFieldName(name string) (string, bool) {
 			return known, true
 		}
 	}
-	// Preserve the author's casing for unknown fields so the finding
-	// evidence is legible, but normalize to Title-Hyphen-Case for display.
+
 	return name, false
 }
 
@@ -150,8 +146,7 @@ func parseSecurityTxt(body []byte) parsedSecurityTxt {
 			p.Lines = append(p.Lines, sectxtLine{LineNo: lineNo, Raw: raw, Comment: true})
 			continue
 		case inClearsignHeader:
-			// Clearsign armor emits "Hash: ..." header lines followed by a
-			// blank line before the actual content resumes.
+
 			if trimmed == "" {
 				inClearsignHeader = false
 			}
@@ -204,10 +199,6 @@ func parseSecurityTxt(body []byte) parsedSecurityTxt {
 
 const maxExpiresValidity = 365 * 24 * time.Hour
 
-// ParseSecurityTxtFields extracts field values (canonical name -> values in
-// file order) from a security.txt body, ignoring PGP armor and malformed
-// lines. Exported for internal/fix, which reuses discovered values when
-// generating a corrected file rather than re-implementing this parser.
 func ParseSecurityTxtFields(body []byte) map[string][]string {
 	return parseSecurityTxt(body).Fields
 }
@@ -224,7 +215,6 @@ func (SecurityTxtValidator) Validate(ctx Context) Output {
 	out.Facts["has_signature"] = strconv.FormatBool(p.HasSignature)
 	out.Facts["signature_type"] = p.SignatureType
 
-	// --- Required fields -------------------------------------------------
 	if len(p.Fields["Contact"]) == 0 {
 		out.Findings = append(out.Findings, finding.Finding{
 			ID: "SECTXT-001", Severity: finding.SeverityHigh, Confidence: finding.ConfidenceCertain,
@@ -249,7 +239,6 @@ func (SecurityTxtValidator) Validate(ctx Context) Output {
 		validateExpires(p.Fields["Expires"][0], &out)
 	}
 
-	// --- Canonical ---------------------------------------------------------
 	if canon := p.Fields["Canonical"]; len(canon) > 0 {
 		out.Facts["canonical_values"] = strings.Join(canon, "|")
 		if !anyCanonicalMatches(canon, finalURL(r)) {
@@ -262,7 +251,6 @@ func (SecurityTxtValidator) Validate(ctx Context) Output {
 		}
 	}
 
-	// --- Served from legacy /security.txt ---------------------------------
 	if servedPath := urlPath(finalURL(r)); servedPath == "/security.txt" {
 		out.Findings = append(out.Findings, finding.Finding{
 			ID: "SECTXT-008", Severity: finding.SeverityLow, Confidence: finding.ConfidenceCertain,
@@ -272,7 +260,6 @@ func (SecurityTxtValidator) Validate(ctx Context) Output {
 		})
 	}
 
-	// --- PGP signature -------------------------------------------------
 	if p.HasSignature {
 		out.Findings = append(out.Findings, finding.Finding{
 			ID: "SECTXT-009", Severity: finding.SeverityInfo, Confidence: finding.ConfidenceCertain,
@@ -283,7 +270,6 @@ func (SecurityTxtValidator) Validate(ctx Context) Output {
 		validateSignature(p, ctx, &out)
 	}
 
-	// --- Unknown / malformed fields ----------------------------------------
 	reportFieldIssues(p, r, &out)
 
 	out.Facts["policy_present"] = strconv.FormatBool(len(p.Fields["Policy"]) > 0)
@@ -300,8 +286,6 @@ func (SecurityTxtValidator) Validate(ctx Context) Output {
 	return out
 }
 
-// anyFieldValueContains reports whether any field value in p contains
-// substr, case-insensitively.
 func anyFieldValueContains(p parsedSecurityTxt, substr string) bool {
 	substr = strings.ToLower(substr)
 	for _, values := range p.Fields {
@@ -314,10 +298,6 @@ func anyFieldValueContains(p parsedSecurityTxt, substr string) bool {
 	return false
 }
 
-// analyzeContacts derives contact_form_only (true when every Contact value
-// is an http(s) form URL with no mailto: or tel: alternative) and
-// contact_external_domain (the first contact URL whose registrable domain
-// differs from the target host's, empty if none).
 func analyzeContacts(contacts []string, host string, out *Output) {
 	if len(contacts) == 0 {
 		return
@@ -391,12 +371,6 @@ func validateExpires(raw string, out *Output) {
 	}
 }
 
-// pgpKeyBlockMarker is what a fetched Encryption key must structurally
-// contain for magpie's best-effort, dependency-free key check to pass.
-// magpie performs no cryptographic signature verification: it confirms the
-// referenced key is reachable and looks like a PGP public key block, which
-// is the extent of what a passive, read-only tool can safely assert without
-// pulling in a full OpenPGP implementation.
 const pgpKeyBlockMarker = "-----BEGIN PGP PUBLIC KEY BLOCK-----"
 
 func validateSignature(p parsedSecurityTxt, ctx Context, out *Output) {
@@ -407,8 +381,7 @@ func validateSignature(p parsedSecurityTxt, ctx Context, out *Output) {
 	target := enc[0]
 	u, err := url.Parse(target)
 	if err != nil || (u.Scheme != "http" && u.Scheme != "https") {
-		// Not a fetchable URL (e.g. openpgp4fpr: fingerprint) — nothing to
-		// verify passively.
+
 		return
 	}
 	if ctx.Fetch == nil {

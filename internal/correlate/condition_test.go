@@ -106,7 +106,7 @@ func TestEvalFactCompare(t *testing.T) {
 		t.Error("expected conflict when values differ")
 	}
 	c2 := &Condition{FactCompare: &FactCompareCond{A: FactRef{"a", "issuer"}, B: FactRef{"a", "issuer"}, Op: "conflict"}}
-	// same doc/key trivially equal
+
 	if Eval(c2, s) {
 		t.Error("did not expect conflict when comparing identical values")
 	}

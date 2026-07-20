@@ -9,12 +9,6 @@ import (
 
 func init() { Register(OAuthAuthServerValidator{}) }
 
-// OAuthAuthServerValidator extracts facts from
-// /.well-known/oauth-authorization-server (RFC 8414). It is not one of
-// magpie's required validators — no dedicated findings are defined for it —
-// but the correlation engine cross-checks its issuer and endpoint values
-// against openid-configuration (CORR-019, CORR-020), so magpie still parses
-// it and exposes the same fact shape as OpenIDConfigValidator.
 type OAuthAuthServerValidator struct{}
 
 func (OAuthAuthServerValidator) Path() string { return "oauth-authorization-server" }

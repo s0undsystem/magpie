@@ -36,8 +36,6 @@ func init() {
 	})
 }
 
-// AssetLinksValidator validates /.well-known/assetlinks.json against the
-// Android Statements API (Digital Asset Links).
 type AssetLinksValidator struct{}
 
 func (AssetLinksValidator) Path() string { return "assetlinks.json" }

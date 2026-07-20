@@ -6,9 +6,6 @@ import (
 	"github.com/harborproject/magpie/internal/explain"
 )
 
-// TestEveryValidatorFindingIDHasExplainDoc guards against a validator
-// emitting a finding.Finding whose ID has no matching explain.Doc, which
-// would make `magpie explain <id>` unable to document it.
 func TestEveryValidatorFindingIDHasExplainDoc(t *testing.T) {
 	want := []string{
 		"SECTXT-001", "SECTXT-002", "SECTXT-003", "SECTXT-004", "SECTXT-005", "SECTXT-006",

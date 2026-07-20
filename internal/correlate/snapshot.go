@@ -1,6 +1,3 @@
-// Package correlate implements magpie's cross-cutting correlation engine:
-// after every validator has run, rules evaluate facts and presence across
-// the whole well-known directory and produce inferred findings.
 package correlate
 
 import (
@@ -9,7 +6,6 @@ import (
 	"github.com/harborproject/magpie/internal/validate"
 )
 
-// DocFacts is one well-known document's fetch outcome and derived data.
 type DocFacts struct {
 	Path              string
 	Presence          scan.Presence
@@ -19,15 +15,11 @@ type DocFacts struct {
 	Findings          []finding.Finding
 }
 
-// Snapshot is everything the correlation engine needs for one scan: the
-// target host plus per-path facts for every fetched well-known document.
 type Snapshot struct {
 	Host string
 	Docs map[string]DocFacts
 }
 
-// BuildSnapshot assembles a Snapshot from raw fetch results and the
-// validator outputs keyed by registry path.
 func BuildSnapshot(host string, results []scan.Result, outputs map[string]validate.Output) Snapshot {
 	docs := make(map[string]DocFacts, len(results))
 	for _, r := range results {
@@ -76,8 +68,6 @@ func (s Snapshot) hasFinding(path, id string) bool {
 	return false
 }
 
-// cleanCount returns the number of documents that are present and produced
-// zero validator findings.
 func (s Snapshot) cleanCount() int {
 	n := 0
 	for _, d := range s.Docs {

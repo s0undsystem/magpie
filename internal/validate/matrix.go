@@ -11,10 +11,6 @@ func init() {
 	Register(MatrixClientValidator{})
 }
 
-// MatrixServerValidator extracts facts from /.well-known/matrix/server (the
-// Matrix server-server delegation document). Like OAuthAuthServerValidator,
-// this is not one of magpie's required validators — it exists only to feed
-// the inference layer's Matrix homeserver detection.
 type MatrixServerValidator struct{}
 
 func (MatrixServerValidator) Path() string { return "matrix/server" }
@@ -36,8 +32,6 @@ func (MatrixServerValidator) Validate(ctx Context) Output {
 	return out
 }
 
-// MatrixClientValidator extracts facts from /.well-known/matrix/client (the
-// Matrix client-server delegation document).
 type MatrixClientValidator struct{}
 
 func (MatrixClientValidator) Path() string { return "matrix/client" }

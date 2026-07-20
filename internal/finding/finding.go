@@ -1,37 +1,21 @@
-// Package finding defines the finding model shared by every validator, the
-// correlation engine, and the inference layer.
 package finding
 
 import "sort"
 
-// Finding is a single reportable observation. It is produced either by a
-// validator reading a well-known document directly, or by the correlation
-// engine reasoning across multiple documents.
 type Finding struct {
-	// ID is a stable identifier, e.g. "SECTXT-004" or "CORR-011". IDs are
-	// never reused and never renumbered.
 	ID string `json:"id"`
 
 	Severity   Severity   `json:"severity"`
 	Confidence Confidence `json:"confidence"`
 	Category   Category   `json:"category"`
 
-	// Message is one sentence of plain practitioner language. No marketing
-	// tone.
 	Message string `json:"message"`
 
-	// Evidence is the specific value or path that triggered the finding.
 	Evidence string `json:"evidence"`
 
-	// SpecRef is the RFC or spec section this finding relates to, where
-	// applicable.
 	SpecRef string `json:"spec_ref,omitempty"`
 }
 
-// Sort orders findings deterministically: by category (canonical order),
-// then by severity descending, then by ID ascending. This is the order the
-// terminal, markdown, and JSON renderers all rely on for byte-identical
-// repeat output.
 func Sort(findings []Finding) {
 	sort.SliceStable(findings, func(i, j int) bool {
 		a, b := findings[i], findings[j]
@@ -45,16 +29,12 @@ func Sort(findings []Finding) {
 	})
 }
 
-// Filter describes the minimum thresholds and category allow-list used to
-// narrow a finding set for display, mirroring the --min-severity,
-// --min-confidence, and --category CLI flags.
 type Filter struct {
 	MinSeverity   Severity
 	MinConfidence Confidence
-	Categories    []Category // empty means "all categories"
+	Categories    []Category
 }
 
-// Matches reports whether f passes the filter.
 func (flt Filter) Matches(f Finding) bool {
 	if flt.MinSeverity != "" && f.Severity.Rank() < flt.MinSeverity.Rank() {
 		return false
@@ -77,8 +57,6 @@ func (flt Filter) Matches(f Finding) bool {
 	return true
 }
 
-// Apply returns the subset of findings passing the filter, in their
-// original relative order.
 func (flt Filter) Apply(findings []Finding) []Finding {
 	out := make([]Finding, 0, len(findings))
 	for _, f := range findings {
@@ -89,9 +67,6 @@ func (flt Filter) Apply(findings []Finding) []Finding {
 	return out
 }
 
-// GroupByCategory splits sorted findings into per-category slices, in
-// canonical category order. Call Sort first if the input isn't already
-// sorted; GroupByCategory does not re-sort within a category.
 func GroupByCategory(findings []Finding) []CategoryGroup {
 	groups := map[Category][]Finding{}
 	for _, f := range findings {
@@ -111,7 +86,6 @@ func GroupByCategory(findings []Finding) []CategoryGroup {
 	return out
 }
 
-// CategoryGroup is a category and the findings within it, used by renderers.
 type CategoryGroup struct {
 	Category Category
 	Findings []Finding

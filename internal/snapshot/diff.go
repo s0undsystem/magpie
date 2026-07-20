@@ -11,35 +11,28 @@ import (
 	"github.com/harborproject/magpie/internal/scan"
 )
 
-// SeverityChange is a finding ID whose severity differs between two
-// snapshots.
 type SeverityChange struct {
 	ID  string           `json:"id"`
 	Old finding.Severity `json:"old"`
 	New finding.Severity `json:"new"`
 }
 
-// Diff is everything that changed between two scans of the same domain.
 type Diff struct {
 	Domain  string    `json:"domain"`
 	OldScan time.Time `json:"old_scan"`
 	NewScan time.Time `json:"new_scan"`
 
-	PathsAppeared    []string `json:"paths_appeared,omitempty"`    // presence became "present"
-	PathsDisappeared []string `json:"paths_disappeared,omitempty"` // presence stopped being "present"
+	PathsAppeared    []string `json:"paths_appeared,omitempty"`
+	PathsDisappeared []string `json:"paths_disappeared,omitempty"`
 
-	FindingsNew      []finding.Finding `json:"findings_new,omitempty"`      // IDs present now but not before
-	FindingsResolved []finding.Finding `json:"findings_resolved,omitempty"` // IDs present before but not now
-	SeverityChanges  []SeverityChange  `json:"severity_changes,omitempty"`  // IDs present in both, severity differs
+	FindingsNew      []finding.Finding `json:"findings_new,omitempty"`
+	FindingsResolved []finding.Finding `json:"findings_resolved,omitempty"`
+	SeverityChanges  []SeverityChange  `json:"severity_changes,omitempty"`
 
-	// ExpiresDaysOld/New are security.txt's expires_days_remaining fact at
-	// each snapshot, nil if unknown at that snapshot.
 	ExpiresDaysOld *int `json:"expires_days_old,omitempty"`
 	ExpiresDaysNew *int `json:"expires_days_new,omitempty"`
 }
 
-// Compute diffs two reports for the same domain, old being the earlier
-// snapshot and new being the current scan.
 func Compute(old, newRep report.Report) Diff {
 	d := Diff{
 		Domain:         newRep.Domain,
@@ -110,10 +103,6 @@ func presentSet(rep report.Report) map[string]bool {
 	return set
 }
 
-// findingsByID indexes findings by ID. When a rule fires more than once
-// (e.g. multiple offsite redirects), the first instance in sorted order
-// represents the ID for comparison purposes; Diff reports ID-level
-// appearance/resolution/severity-change, not per-instance detail.
 func findingsByID(findings []finding.Finding) map[string]finding.Finding {
 	m := make(map[string]finding.Finding, len(findings))
 	for _, f := range findings {
@@ -124,16 +113,12 @@ func findingsByID(findings []finding.Finding) map[string]finding.Finding {
 	return m
 }
 
-// HasChanges reports whether anything at all differs between the two
-// snapshots.
 func (d Diff) HasChanges() bool {
 	return len(d.PathsAppeared) > 0 || len(d.PathsDisappeared) > 0 ||
 		len(d.FindingsNew) > 0 || len(d.FindingsResolved) > 0 || len(d.SeverityChanges) > 0 ||
 		expiresChanged(d.ExpiresDaysOld, d.ExpiresDaysNew)
 }
 
-// HasNewMediumOrHigher reports whether any newly appeared finding is medium
-// or high severity, the condition --diff --exit-code checks for CI use.
 func (d Diff) HasNewMediumOrHigher() bool {
 	for _, f := range d.FindingsNew {
 		if f.Severity.Rank() >= finding.SeverityMedium.Rank() {
@@ -155,7 +140,6 @@ func expiresChanged(old, new_ *int) bool {
 	return *old != *new_
 }
 
-// RenderText writes a human-readable summary of only what changed.
 func (d Diff) RenderText() string {
 	var b strings.Builder
 	if !d.HasChanges() {

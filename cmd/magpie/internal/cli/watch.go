@@ -17,10 +17,6 @@ import (
 	"github.com/harborproject/magpie/internal/snapshot"
 )
 
-// runWatch implements --watch: re-scan host every --interval, printing only
-// what changed since the last tick (reusing the snapshot diff logic from
-// --diff) and optionally POSTing the change set to --webhook. Ctrl+C stops
-// cleanly after the current tick.
 func runWatch(cmd *cobra.Command, host string, opts orchestrate.Options) error {
 	interval, err := time.ParseDuration(scan.interval)
 	if err != nil {
@@ -80,7 +76,6 @@ func watchTick(ctx context.Context, host string, opts orchestrate.Options, stdou
 	return err
 }
 
-// postWebhook POSTs the change set as JSON to url with a bounded timeout.
 func postWebhook(ctx context.Context, url string, d snapshot.Diff) error {
 	body, err := json.Marshal(d)
 	if err != nil {

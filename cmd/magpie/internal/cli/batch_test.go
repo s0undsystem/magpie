@@ -54,7 +54,7 @@ func TestReadDomainsFileEmpty(t *testing.T) {
 
 func TestProgressNonTTYWritesOneLinePerDomain(t *testing.T) {
 	var buf bytes.Buffer
-	p := newProgress(&buf, 2) // buf is not *os.File, so tty=false
+	p := newProgress(&buf, 2)
 	p.tick("example.org", nil)
 	p.tick("example.net", nil)
 	p.done()

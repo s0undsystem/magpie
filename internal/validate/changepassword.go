@@ -19,11 +19,6 @@ func init() {
 	})
 }
 
-// ChangePasswordValidator validates /.well-known/change-password. Per the
-// convention, a well-behaved host either redirects the request or returns
-// 200 with an HTML landing page; the absent/soft404-while-advertised case
-// is a cross-document concern handled by the correlation engine (CORR-006),
-// not this validator.
 type ChangePasswordValidator struct{}
 
 func (ChangePasswordValidator) Path() string { return "change-password" }

@@ -1,9 +1,3 @@
-// Package ct expands a scan to subdomains discovered via public
-// certificate transparency logs (crt.sh). This is passive: it queries a
-// public log aggregator for certificates already issued for the domain and
-// reads the hostnames those certificates list. It performs no DNS brute
-// forcing, wordlist enumeration, or probing of any kind — every hostname it
-// returns is one a certificate authority has already publicly logged.
 package ct
 
 import (
@@ -16,25 +10,19 @@ import (
 	"strings"
 )
 
-// DefaultLimit is the default cap on subdomains returned, matching --ct-limit's default.
 const DefaultLimit = 50
 
-// baseURL is overridable in tests.
 var baseURL = "https://crt.sh/"
 
-// Result is the outcome of a certificate transparency lookup.
 type Result struct {
-	Subdomains []string // sorted, deduplicated, capped at limit
-	Truncated  bool     // true if more subdomains were found than limit allowed
+	Subdomains []string
+	Truncated  bool
 }
 
 type crtSHEntry struct {
 	NameValue string `json:"name_value"`
 }
 
-// Lookup queries crt.sh for certificates covering *.domain and returns the
-// distinct subdomains found in their Subject Alternative Names, sorted and
-// capped at limit (DefaultLimit if limit <= 0).
 func Lookup(ctx context.Context, client *http.Client, domain string, limit int) (Result, error) {
 	if limit <= 0 {
 		limit = DefaultLimit

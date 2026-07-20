@@ -432,8 +432,7 @@ func TestCORR024_GenericDisagreement(t *testing.T) {
 }
 
 func TestCORR024_ExcludesOIDCOAuthIssuerPair(t *testing.T) {
-	// CORR-020 owns the openid-configuration/oauth-authorization-server
-	// issuer comparison; CORR-024 must not also fire for it.
+
 	s := snap(map[string]DocFacts{
 		"openid-configuration":       doc(scan.PresencePresent, map[string]string{"issuer": "https://a.example.org"}),
 		"oauth-authorization-server": doc(scan.PresencePresent, map[string]string{"issuer": "https://b.example.org"}),

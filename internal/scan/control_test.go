@@ -37,8 +37,6 @@ func TestResemblesControlLengthTolerance(t *testing.T) {
 	controlBody := []byte("Sorry, the page you requested (RANDOMTOKEN) could not be found on this server.")
 	ctrl := newControl(&rawResponse{StatusCode: 200, ContentType: "text/html", Body: controlBody})
 
-	// Same template, but the real request path is a different length than
-	// the random control token, shifting body length slightly.
 	echoedBody := []byte("Sorry, the page you requested (openid-configuration) could not be found on this server.")
 	raw := &rawResponse{StatusCode: 200, ContentType: "text/html", Body: echoedBody}
 	if !resemblesControl(raw, ctrl) {

@@ -16,17 +16,17 @@ import (
 )
 
 var (
-	colorHigh    = lipgloss.Color("9")   // red
-	colorMedium  = lipgloss.Color("11")  // yellow
-	colorLow     = lipgloss.Color("14")  // cyan
-	colorInfo    = lipgloss.Color("245") // gray
-	colorPresent = lipgloss.Color("10")  // green
-	colorAbsent  = lipgloss.Color("245") // gray
-	colorSoft404 = lipgloss.Color("11")  // yellow
-	colorError   = lipgloss.Color("9")   // red
-	colorOffsite = lipgloss.Color("13")  // magenta
+	colorHigh    = lipgloss.Color("9")
+	colorMedium  = lipgloss.Color("11")
+	colorLow     = lipgloss.Color("14")
+	colorInfo    = lipgloss.Color("245")
+	colorPresent = lipgloss.Color("10")
+	colorAbsent  = lipgloss.Color("245")
+	colorSoft404 = lipgloss.Color("11")
+	colorError   = lipgloss.Color("9")
+	colorOffsite = lipgloss.Color("13")
 	colorMuted   = lipgloss.Color("245")
-	colorHeading = lipgloss.Color("6") // teal
+	colorHeading = lipgloss.Color("6")
 )
 
 func severityColor(s finding.Severity) lipgloss.Color {
@@ -57,8 +57,6 @@ func presenceColor(p scan.Presence) lipgloss.Color {
 	}
 }
 
-// Terminal writes a human-readable report to w using lipgloss styling.
-// Colors are disabled when opts.NoColor is set.
 func Terminal(w io.Writer, rep report.Report, opts Options) error {
 	renderer := lipgloss.NewRenderer(w)
 	if opts.NoColor {
@@ -72,7 +70,6 @@ func Terminal(w io.Writer, rep report.Report, opts Options) error {
 
 	var b strings.Builder
 
-	// --- Header ---------------------------------------------------------
 	title := bold.Render("magpie") + " — " + bold.Render(rep.Domain)
 	b.WriteString(title + "\n")
 	if !opts.NoTimestamps {
@@ -80,7 +77,6 @@ func Terminal(w io.Writer, rep report.Report, opts Options) error {
 	}
 	b.WriteString("\n")
 
-	// --- Path table -------------------------------------------------------
 	b.WriteString(heading.Render("WELL-KNOWN PATHS") + "\n")
 	pathCol, presenceCol, ctCol := widestPath(rep.Paths), 18, 28
 	for _, p := range rep.Paths {
@@ -103,7 +99,6 @@ func Terminal(w io.Writer, rep report.Report, opts Options) error {
 	}
 	b.WriteString("\n")
 
-	// --- Findings ---------------------------------------------------------
 	filtered := opts.Filter.Apply(rep.Findings)
 	b.WriteString(heading.Render(fmt.Sprintf("FINDINGS (%d)", len(filtered))) + "\n")
 	if len(filtered) == 0 {
@@ -123,7 +118,6 @@ func Terminal(w io.Writer, rep report.Report, opts Options) error {
 	}
 	b.WriteString("\n")
 
-	// --- Inference ---------------------------------------------------------
 	b.WriteString(heading.Render("INFERENCE") + "\n")
 	inf := rep.Inference
 	if inf.IdentityProvider != nil {
@@ -147,7 +141,6 @@ func Terminal(w io.Writer, rep report.Report, opts Options) error {
 		b.WriteString(muted.Render("  nothing inferred") + "\n")
 	}
 
-	// --- Compare -------------------------------------------------------
 	if opts.Compare {
 		if err := appendCompareSection(&b, rep, base, heading, muted); err != nil {
 			return err
@@ -158,8 +151,6 @@ func Terminal(w io.Writer, rep report.Report, opts Options) error {
 	return err
 }
 
-// appendCompareSection renders the target's presence alongside
-// internal/compare's curated reference corpus.
 func appendCompareSection(b *strings.Builder, rep report.Report, base, heading, muted lipgloss.Style) error {
 	corpus, err := compare.Load()
 	if err != nil {

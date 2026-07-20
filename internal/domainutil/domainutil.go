@@ -1,10 +1,3 @@
-// Package domainutil provides a small, pragmatic helper for comparing
-// registrable domains (eTLD+1). It is deliberately not a full Public
-// Suffix List implementation — it recognizes a short curated list of common
-// multi-label public suffixes and otherwise falls back to the last two
-// labels. This is a known, documented limitation (see README): domains
-// under less common multi-label suffixes not in the list below will be
-// compared one label too coarsely.
 package domainutil
 
 import "strings"
@@ -16,11 +9,9 @@ var twoLabelSuffixes = map[string]bool{
 	"com.br": true, "com.cn": true, "com.mx": true,
 }
 
-// Registrable returns the registrable domain (eTLD+1) for host. Hosts that
-// are bare IP addresses or already a single label are returned unchanged.
 func Registrable(host string) string {
 	host = strings.ToLower(strings.TrimSuffix(host, "."))
-	if i := strings.IndexByte(host, ':'); i >= 0 { // strip a port, if present
+	if i := strings.IndexByte(host, ':'); i >= 0 {
 		host = host[:i]
 	}
 	labels := strings.Split(host, ".")
@@ -34,8 +25,6 @@ func Registrable(host string) string {
 	return lastTwo
 }
 
-// SameRegistrable reports whether a and b share the same registrable
-// domain.
 func SameRegistrable(a, b string) bool {
 	return Registrable(a) == Registrable(b)
 }

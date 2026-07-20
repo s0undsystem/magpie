@@ -16,9 +16,6 @@ import (
 	"github.com/harborproject/magpie/internal/version"
 )
 
-// scanFlags holds the flags shared by the single-domain scan invocation.
-// Most of these are wired up in later build steps; they are declared now so
-// the CLI surface and --help output are stable from the start.
 type scanFlags struct {
 	file              string
 	concurrency       int
@@ -148,10 +145,6 @@ func runScan(cmd *cobra.Command, args []string) error {
 	}
 }
 
-// runDiff implements --diff: compare rep against the most recent saved
-// snapshot for its domain and print only what changed. If --save was also
-// passed, the previous snapshot is loaded before the new one is written so
-// the diff isn't comparing rep against itself.
 func runDiff(cmd *cobra.Command, rep report.Report) error {
 	prev, ok, err := snapshot.Latest(rep.Domain)
 	if err != nil {
@@ -178,8 +171,6 @@ func runDiff(cmd *cobra.Command, rep report.Report) error {
 	return nil
 }
 
-// buildOrchestrateOptions assembles orchestrate.Options from scan flags,
-// shared by single-domain scans, batch mode, and --ct.
 func buildOrchestrateOptions() (orchestrate.Options, error) {
 	var rulesOverlay []byte
 	if scan.rulesFile != "" {

@@ -12,10 +12,6 @@ import (
 	"github.com/harborproject/magpie/internal/orchestrate"
 )
 
-// runCT implements --ct: look up subdomains of host via crt.sh (public
-// certificate transparency logs only — no DNS brute forcing, wordlists, or
-// probing of any kind), then run the same passive well-known scan against
-// host plus every discovered subdomain, capped at --ct-limit.
 func runCT(cmd *cobra.Command, host string, opts orchestrate.Options) error {
 	stderr := cmd.ErrOrStderr()
 	fmt.Fprintln(stderr, "querying crt.sh (public certificate transparency logs) for subdomains; no enumeration or probing is performed")

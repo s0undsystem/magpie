@@ -1,7 +1,3 @@
-// Package scan implements magpie's passive HTTP fetch layer: one GET per
-// documented well-known path, bounded concurrency, a token-bucket rate
-// limiter, redirect tracking capped at five hops, and soft-404 detection via
-// a control-path baseline.
 package scan
 
 import (
@@ -21,17 +17,14 @@ import (
 	"github.com/harborproject/magpie/internal/registry"
 )
 
-// Config controls fetcher behavior.
 type Config struct {
-	Concurrency  int           // parallel requests per host
-	RatePerSec   float64       // token-bucket refill rate, requests/sec
-	Timeout      time.Duration // per-request timeout
+	Concurrency  int
+	RatePerSec   float64
+	Timeout      time.Duration
 	MaxRedirects int
 	UserAgent    string
 }
 
-// DefaultConfig returns magpie's documented defaults: 10 parallel requests
-// per host, a matching 10 req/s rate limit, and a 10 second timeout.
 func DefaultConfig(userAgent string) Config {
 	return Config{
 		Concurrency:  10,
@@ -58,10 +51,9 @@ func (c Config) withDefaults() Config {
 	return c
 }
 
-// Result is the outcome of fetching a single documented well-known path.
 type Result struct {
-	Path          string // registry-relative path, e.g. "security.txt"
-	URL           string // URL requested
+	Path          string
+	URL           string
 	Entry         registry.Entry
 	Presence      Presence
 	StatusCode    int
@@ -69,8 +61,7 @@ type Result struct {
 	Body          []byte
 	Headers       http.Header
 	RedirectChain []string
-	// RedirectOffsiteTo is the hostname a redirect chain left the original
-	// host for, set only when Presence == PresenceRedirectedOffsite.
+
 	RedirectOffsiteTo string
 	TTFB              time.Duration
 	Total             time.Duration
@@ -78,16 +69,12 @@ type Result struct {
 	Err               string
 }
 
-// Fetcher performs the passive, read-only well-known scan for a single
-// host.
 type Fetcher struct {
 	cfg       Config
 	transport *http.Transport
 	limiter   *RateLimiter
 }
 
-// New creates a Fetcher. Zero-valued Config fields fall back to
-// DefaultConfig's values.
 func New(cfg Config) *Fetcher {
 	cfg = cfg.withDefaults()
 	return &Fetcher{
@@ -99,9 +86,6 @@ func New(cfg Config) *Fetcher {
 	}
 }
 
-// Scan fetches the soft-404 control probe, then every entry in entries,
-// against baseURL (e.g. "https://example.org"). Results are returned sorted
-// by path for deterministic output regardless of completion order.
 func (f *Fetcher) Scan(ctx context.Context, baseURL string, entries []registry.Entry) ([]Result, Control, error) {
 	base, err := url.Parse(baseURL)
 	if err != nil {
@@ -144,7 +128,6 @@ func (f *Fetcher) Scan(ctx context.Context, baseURL string, entries []registry.E
 	return results, ctrl, nil
 }
 
-// rawResponse is the unclassified outcome of a single GET.
 type rawResponse struct {
 	StatusCode    int
 	ContentType   string
@@ -157,8 +140,6 @@ type rawResponse struct {
 	Err           error
 }
 
-// fetchOne issues exactly one logical GET (following same-host redirects up
-// to MaxRedirects) for path against base.
 func (f *Fetcher) fetchOne(ctx context.Context, base *url.URL, path string) *rawResponse {
 	target := *base
 	target.Path = path
@@ -205,7 +186,7 @@ func (f *Fetcher) fetchOne(ctx context.Context, base *url.URL, path string) *raw
 	}
 	defer resp.Body.Close()
 
-	const maxBody = 5 << 20 // 5MB cap; well-known documents are small text/JSON.
+	const maxBody = 5 << 20
 	body, err := io.ReadAll(io.LimitReader(resp.Body, maxBody))
 	if err != nil {
 		return &rawResponse{Err: err, StatusCode: resp.StatusCode, Total: total}
@@ -223,8 +204,6 @@ func (f *Fetcher) fetchOne(ctx context.Context, base *url.URL, path string) *raw
 	}
 }
 
-// classify turns a raw response into a presence determination, applying the
-// soft-404 control comparison and the kind-specific content checks.
 func (f *Fetcher) classify(e registry.Entry, base *url.URL, raw *rawResponse, ctrl Control) Result {
 	res := Result{
 		Path:          e.Path,

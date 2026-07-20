@@ -1,5 +1,3 @@
-// Package registry provides the IANA Well-Known URI Registry, embedded at
-// build time, with support for a locally cached override.
 package registry
 
 import (
@@ -15,29 +13,25 @@ import (
 //go:embed iana_wellknown.json
 var embeddedRegistryJSON []byte
 
-// Entry describes a single documented well-known path.
 type Entry struct {
-	Path        string `json:"path"`         // e.g. "security.txt"
-	Reference   string `json:"reference"`    // RFC/spec citation
-	Status      string `json:"status"`       // registration status, e.g. "permanent"
-	ContentType string `json:"content_type"` // expected content type, "" if unspecified
-	Kind        string `json:"kind"`         // "json", "text", "html", "" (unspecified)
+	Path        string `json:"path"`
+	Reference   string `json:"reference"`
+	Status      string `json:"status"`
+	ContentType string `json:"content_type"`
+	Kind        string `json:"kind"`
 	Description string `json:"description"`
 }
 
-// FullPath returns the absolute /.well-known/ URL path for this entry.
 func (e Entry) FullPath() string {
 	return "/.well-known/" + e.Path
 }
 
-// Registry is an ordered, deterministic set of well-known registry entries.
 type Registry struct {
 	Entries []Entry `json:"entries"`
-	Source  string  `json:"source"` // "embedded" or path to cache file
+	Source  string  `json:"source"`
 	Updated string  `json:"updated,omitempty"`
 }
 
-// CacheDir returns ~/.magpie, creating it if necessary.
 func CacheDir() (string, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
@@ -58,8 +52,6 @@ func cachePath() (string, error) {
 	return filepath.Join(dir, "registry_cache.json"), nil
 }
 
-// Load returns the registry, preferring a local cache file over the embedded
-// copy when the cache exists and is newer than the build-embedded version.
 func Load() (*Registry, error) {
 	reg, err := loadEmbedded()
 	if err != nil {
@@ -68,7 +60,7 @@ func Load() (*Registry, error) {
 
 	path, err := cachePath()
 	if err != nil {
-		// No home dir available; fall back to embedded silently.
+
 		return reg, nil
 	}
 	data, err := os.ReadFile(path)
@@ -98,8 +90,6 @@ func sortEntries(e []Entry) {
 	sort.Slice(e, func(i, j int) bool { return e[i].Path < e[j].Path })
 }
 
-// SaveCache writes the registry to the local cache file, stamping the update
-// time.
 func SaveCache(reg *Registry) (string, error) {
 	path, err := cachePath()
 	if err != nil {
@@ -117,7 +107,6 @@ func SaveCache(reg *Registry) (string, error) {
 	return path, nil
 }
 
-// CacheInfo reports whether a local cache exists and its age.
 func CacheInfo() (exists bool, path string, age time.Duration, err error) {
 	path, err = cachePath()
 	if err != nil {

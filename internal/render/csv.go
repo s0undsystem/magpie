@@ -17,8 +17,6 @@ var csvHeader = []string{
 	"mobile_apps", "matrix_homeserver", "acme_present",
 }
 
-// CSV writes one flat summary row per report, suitable for spreadsheet
-// analysis in batch mode. A single report produces a header plus one row.
 func CSV(w io.Writer, reports []report.Report, opts Options) error {
 	cw := csv.NewWriter(w)
 	if err := cw.Write(csvHeader); err != nil {

@@ -1,8 +1,3 @@
-// Package infer derives a best-effort technology stack summary from
-// already-validated well-known content: identity provider, mobile app
-// presence, mail security posture, Matrix homeserver, and ACME/certificate
-// automation. It never performs additional network requests — everything
-// here is read from facts validators already extracted.
 package infer
 
 import (
@@ -12,41 +7,31 @@ import (
 	"github.com/harborproject/magpie/internal/scan"
 )
 
-// IdentityProvider is the federated identity provider inferred from an
-// openid-configuration issuer URL.
 type IdentityProvider struct {
 	Provider string
 	Issuer   string
 }
 
-// MobileApp is a mobile app surface discovered via assetlinks.json (Android)
-// or apple-app-site-association (iOS).
 type MobileApp struct {
-	Platform    string // "android" or "ios"
+	Platform    string
 	Identifiers []string
 }
 
-// MailSecurity summarizes the mail transport security posture inferred from
-// mta-sts.txt and its DNS activation record.
 type MailSecurity struct {
 	Configured   bool
-	Mode         string // "enforce", "testing", "none", or "" if unknown
+	Mode         string
 	DNSActivated bool
 }
 
-// MatrixHomeserver is the Matrix homeserver address discovered via
-// matrix/server or matrix/client delegation.
 type MatrixHomeserver struct {
-	Source  string // "matrix/server" or "matrix/client"
+	Source  string
 	Address string
 }
 
-// ACME summarizes whether an ACME HTTP-01 challenge artifact was found.
 type ACME struct {
 	Present bool
 }
 
-// Result is the full inferred stack summary for one scan.
 type Result struct {
 	IdentityProvider *IdentityProvider
 	MobileApps       []MobileApp
@@ -55,7 +40,6 @@ type Result struct {
 	ACME             *ACME
 }
 
-// Infer derives a Result from a correlation Snapshot.
 func Infer(snap correlate.Snapshot) Result {
 	var res Result
 

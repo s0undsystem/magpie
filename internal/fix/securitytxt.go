@@ -1,7 +1,3 @@
-// Package fix generates corrected well-known artifacts for --fix. It never
-// performs network I/O: everything here is pure text generation from
-// already-fetched content (or a bare host name when nothing was fetched),
-// printed to stdout for the caller to review and publish by hand.
 package fix
 
 import (
@@ -12,16 +8,8 @@ import (
 	"github.com/harborproject/magpie/internal/validate"
 )
 
-// OneYear is the validity window a freshly generated Expires field uses,
-// matching RFC 9116's recommended maximum.
 const OneYear = 365 * 24 * time.Hour
 
-// SecurityTxt renders a complete, RFC 9116 compliant security.txt for host.
-// existingBody is the previously fetched file's content, if any (nil or
-// empty when security.txt was missing or unparseable); values found in it
-// are reused, and anything magpie couldn't discover is called out with a
-// "# TODO" comment immediately above the field it concerns, or in place of
-// the field entirely when magpie has nothing to fill in.
 func SecurityTxt(host string, existingBody []byte, now time.Time) string {
 	var fields map[string][]string
 	if len(existingBody) > 0 {

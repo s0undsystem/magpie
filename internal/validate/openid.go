@@ -42,8 +42,6 @@ func init() {
 	})
 }
 
-// OpenIDConfigValidator validates /.well-known/openid-configuration against
-// OpenID Connect Discovery 1.0.
 type OpenIDConfigValidator struct{}
 
 func (OpenIDConfigValidator) Path() string { return "openid-configuration" }
@@ -150,10 +148,6 @@ func (OpenIDConfigValidator) Validate(ctx Context) Output {
 	return out
 }
 
-// addOIDCCrossCheckFacts computes facts shared by the openid-configuration
-// and oauth-authorization-server validators that the correlation engine
-// consumes directly (issuer/origin match, jwks_uri domain, and a combined
-// list of endpoint URLs used to detect plaintext HTTP endpoints).
 func addOIDCCrossCheckFacts(doc openIDDoc, ctx Context, out *Output) {
 	if doc.Issuer != "" {
 		if u, err := url.Parse(doc.Issuer); err == nil && u.Hostname() != "" {

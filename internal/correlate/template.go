@@ -7,10 +7,6 @@ import (
 
 var templateTokenRe = regexp.MustCompile(`\{\{([a-zA-Z0-9_.:/\-]+)\}\}`)
 
-// renderTemplate substitutes {{host}}, {{presence:<path>}}, and
-// {{fact:<path>.<key>}} tokens in tmpl using values from snap. Unknown or
-// unresolvable tokens are left verbatim so a typo in a contributed rule file
-// is visible in the output rather than silently swallowed.
 func renderTemplate(tmpl string, snap Snapshot) string {
 	if tmpl == "" {
 		return ""

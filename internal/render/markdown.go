@@ -9,8 +9,6 @@ import (
 	"github.com/harborproject/magpie/internal/report"
 )
 
-// Markdown writes a report suitable for pasting into a ticket or a
-// disclosure report.
 func Markdown(w io.Writer, rep report.Report, opts Options) error {
 	var b strings.Builder
 

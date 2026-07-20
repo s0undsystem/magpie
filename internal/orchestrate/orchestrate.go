@@ -1,5 +1,3 @@
-// Package orchestrate wires together the fetch, validate, correlate, and
-// infer layers into a single scan of one domain.
 package orchestrate
 
 import (
@@ -20,7 +18,6 @@ import (
 	"github.com/harborproject/magpie/internal/validate"
 )
 
-// Options controls one scan run.
 type Options struct {
 	Concurrency  int
 	RatePerSec   float64
@@ -28,29 +25,19 @@ type Options struct {
 	UserAgent    string
 	MaxRedirects int
 
-	// RulesOverlay is optional additional/overriding correlation rules
-	// JSON, as loaded from --rules.
 	RulesOverlay []byte
 
-	// DisableAuxFetch skips the single auxiliary GET security.txt's
-	// validator uses to verify a PGP key referenced by Encryption.
 	DisableAuxFetch bool
-	// DisableDNS skips the DNS TXT/MX lookups mta-sts.txt cross-checks use.
+
 	DisableDNS bool
 }
 
-// RawScan is the full internal scan output: the raw per-path fetch results
-// and validator outputs, plus the assembled report. Most callers only need
-// Report; tooling like --fix needs the raw fetched content (e.g. an
-// existing security.txt body) that report.Report deliberately doesn't
-// retain.
 type RawScan struct {
 	Results []scan.Result
 	Outputs map[string]validate.Output
 	Report  report.Report
 }
 
-// Run performs one full scan of host and returns the assembled report.
 func Run(ctx context.Context, host string, opts Options) (report.Report, error) {
 	raw, err := RunRaw(ctx, host, opts)
 	if err != nil {
@@ -59,8 +46,6 @@ func Run(ctx context.Context, host string, opts Options) (report.Report, error) 
 	return raw.Report, nil
 }
 
-// RunRaw performs one full scan of host and returns the raw fetch/validator
-// output alongside the assembled report.
 func RunRaw(ctx context.Context, host string, opts Options) (RawScan, error) {
 	reg, err := registry.Load()
 	if err != nil {
@@ -152,9 +137,6 @@ func RunRaw(ctx context.Context, host string, opts Options) (RawScan, error) {
 	}, nil
 }
 
-// auxFetcher returns a validate.AuxFetcher performing exactly one GET
-// against an explicitly referenced URL pulled from already-fetched
-// content (e.g. security.txt's Encryption field), never a guessed path.
 func auxFetcher(ctx context.Context, client *http.Client, userAgent string) validate.AuxFetcher {
 	return func(target string) (*scan.Result, error) {
 		req, err := http.NewRequestWithContext(ctx, http.MethodGet, target, nil)

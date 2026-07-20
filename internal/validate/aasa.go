@@ -30,7 +30,6 @@ func init() {
 	})
 }
 
-// AASAValidator validates /.well-known/apple-app-site-association.
 type AASAValidator struct{}
 
 func (AASAValidator) Path() string { return "apple-app-site-association" }
@@ -125,8 +124,6 @@ func (AASAValidator) Validate(ctx Context) Output {
 	return out
 }
 
-// splitAppID splits an Apple app ID of the form "TEAMID.bundle.id" into its
-// team ID and bundle ID parts.
 func splitAppID(appID string) (teamID, bundleID string) {
 	i := strings.IndexByte(appID, '.')
 	if i < 0 {

@@ -46,11 +46,11 @@ func TestSecurityTxtReusesDiscoveredValues(t *testing.T) {
 			t.Errorf("expected discovered value %q preserved, got:\n%s", want, out)
 		}
 	}
-	// A discovered Contact must not also get the generated fallback comment.
+
 	if strings.Contains(out, "TODO: magpie could not discover a contact method") {
 		t.Error("did not expect the contact TODO comment when Contact was discovered")
 	}
-	// The stale Expires must be refreshed, not carried over.
+
 	if strings.Contains(out, "2020-01-01") {
 		t.Error("expected the expired date to be refreshed, not preserved")
 	}
@@ -64,10 +64,6 @@ func TestSecurityTxtMultipleContactsPreserved(t *testing.T) {
 	}
 }
 
-// TestSecurityTxtValidatesClean is a regression guard: the generated file
-// (from scratch, worst case) must itself pass SecurityTxtValidator with no
-// missing-field or malformed-Expires findings, so --fix never produces
-// output that magpie's own scan would immediately flag as broken.
 func TestSecurityTxtValidatesClean(t *testing.T) {
 	out := SecurityTxt("example.org", nil, fixedNow)
 

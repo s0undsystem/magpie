@@ -28,7 +28,7 @@ func jsonHandler(entries []crtSHEntry) http.HandlerFunc {
 func TestLookupDedupesAndSorts(t *testing.T) {
 	client := withTestServer(t, jsonHandler([]crtSHEntry{
 		{NameValue: "www.example.org\nmail.example.org"},
-		{NameValue: "mail.example.org"}, // duplicate
+		{NameValue: "mail.example.org"},
 		{NameValue: "*.api.example.org"},
 	}))
 
@@ -52,10 +52,10 @@ func TestLookupDedupesAndSorts(t *testing.T) {
 
 func TestLookupExcludesBareDomainAndUnrelatedHosts(t *testing.T) {
 	client := withTestServer(t, jsonHandler([]crtSHEntry{
-		{NameValue: "example.org"},     // the bare domain itself, not a subdomain
-		{NameValue: "example.net"},     // different domain entirely
-		{NameValue: "notexample.org"},  // similar suffix but not a subdomain
-		{NameValue: "sub.example.org"}, // genuine subdomain
+		{NameValue: "example.org"},
+		{NameValue: "example.net"},
+		{NameValue: "notexample.org"},
+		{NameValue: "sub.example.org"},
 	}))
 
 	res, err := Lookup(context.Background(), client, "example.org", 0)

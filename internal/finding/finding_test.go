@@ -65,12 +65,12 @@ func TestSortGroupsByCategoryThenSeverityDescThenIDAsc(t *testing.T) {
 	Sort(in)
 
 	want := []string{
-		"SECTXT-001", // disclosure, high
-		"SECTXT-003", // disclosure, high (ID asc tiebreak)
-		"SECTXT-002", // disclosure, medium
-		"CORR-016",   // auth, high
-		"CORR-021",   // mail, medium
-		"CORR-002",   // mobile, low
+		"SECTXT-001",
+		"SECTXT-003",
+		"SECTXT-002",
+		"CORR-016",
+		"CORR-021",
+		"CORR-002",
 	}
 	var got []string
 	for _, f := range in {

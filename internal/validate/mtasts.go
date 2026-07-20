@@ -51,12 +51,11 @@ func init() {
 	})
 }
 
-// MTASTSValidator validates /.well-known/mta-sts.txt against RFC 8461.
 type MTASTSValidator struct{}
 
 func (MTASTSValidator) Path() string { return "mta-sts.txt" }
 
-const maxMTASTSMaxAge = 31557600 // RFC 8461 §3: max_age MUST NOT be greater than 31557600 (1 year).
+const maxMTASTSMaxAge = 31557600
 
 var mtaSTSDNSRecordRe = regexp.MustCompile(`^v=STSv1;\s*id=([A-Za-z0-9]+)\s*;?$`)
 
@@ -96,7 +95,7 @@ func (MTASTSValidator) Validate(ctx Context) Output {
 	out.Facts["mode"] = mode
 	switch mode {
 	case "enforce":
-		// No finding; this is the desired state.
+
 	case "testing":
 		out.Findings = append(out.Findings, finding.Finding{
 			ID: "MTASTS-001", Severity: finding.SeverityLow, Confidence: finding.ConfidenceCertain,
@@ -180,11 +179,6 @@ func validateDNSRecord(ctx Context, out *Output) {
 	})
 }
 
-// policyIDAgeDays attempts to interpret a policy id as a timestamp, per the
-// common (but not mandatory) RFC 8461 convention of using one, and returns
-// its age in days. RFC 8461 does not mandate a format, so ids that don't
-// parse as a recognized timestamp return ok=false and the age is treated as
-// not inferable.
 func policyIDAgeDays(id string) (days int, ok bool) {
 	for _, layout := range []string{"20060102150405Z0700", "2006010215Z0700", time.RFC3339} {
 		normalized := id

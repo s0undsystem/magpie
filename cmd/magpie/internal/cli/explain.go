@@ -44,10 +44,6 @@ func newExplainCmd() *cobra.Command {
 	return cmd
 }
 
-// allDocs merges validator-level finding documentation (registered by each
-// validator's own source file) with correlation rule documentation (which
-// lives in internal/correlate/rules.json alongside each rule's condition),
-// sorted by ID.
 func allDocs() []explain.Doc {
 	docs := explain.All()
 

@@ -51,19 +51,17 @@ INFERENCE
 
 ## Install
 
-**go install**
+magpie isn't published anywhere yet — get the source and build it locally:
+
 ```sh
-go install github.com/harborproject/magpie/cmd/magpie@latest
+git clone <this-repo-url>
+cd magpie
+make build      # -> bin/magpie
 ```
 
-**Homebrew**
-```sh
-brew install harborproject/tap/magpie
-```
-
-**Binary download**
-
-Grab a prebuilt binary for your platform from the [releases page](https://github.com/harborproject/magpie/releases).
+Requires Go (see `go.mod` for the minimum version). `make build` installs
+nothing outside the repo; `./bin/magpie` is a self-contained binary you can
+move wherever you like.
 
 ## Usage
 

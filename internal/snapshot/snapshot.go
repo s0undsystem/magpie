@@ -1,6 +1,3 @@
-// Package snapshot saves and loads point-in-time report.Report snapshots
-// under ~/.magpie/snapshots/<domain>/, and diffs two snapshots to answer
-// "what changed since last time."
 package snapshot
 
 import (
@@ -14,11 +11,8 @@ import (
 	"github.com/harborproject/magpie/internal/report"
 )
 
-// timestampLayout is chosen to sort lexicographically in chronological
-// order, so "most recent snapshot" is just "last name after sorting."
 const timestampLayout = "20060102T150405Z"
 
-// Dir returns ~/.magpie/snapshots/<domain>, creating it if necessary.
 func Dir(domain string) (string, error) {
 	cacheDir, err := registry.CacheDir()
 	if err != nil {
@@ -31,7 +25,6 @@ func Dir(domain string) (string, error) {
 	return dir, nil
 }
 
-// Save writes rep as a new timestamped snapshot file and returns its path.
 func Save(rep report.Report) (string, error) {
 	dir, err := Dir(rep.Domain)
 	if err != nil {
@@ -50,8 +43,6 @@ func Save(rep report.Report) (string, error) {
 	return path, nil
 }
 
-// List returns every snapshot filename for domain, sorted chronologically
-// (oldest first).
 func List(domain string) ([]string, error) {
 	dir, err := Dir(domain)
 	if err != nil {
@@ -71,8 +62,6 @@ func List(domain string) ([]string, error) {
 	return names, nil
 }
 
-// Latest loads the most recent snapshot for domain. ok is false if no
-// snapshot exists yet.
 func Latest(domain string) (rep report.Report, ok bool, err error) {
 	names, err := List(domain)
 	if err != nil {

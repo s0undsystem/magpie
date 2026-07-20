@@ -17,7 +17,7 @@ func TestRateLimiterAllowsBurst(t *testing.T) {
 }
 
 func TestRateLimiterThrottlesBeyondBurst(t *testing.T) {
-	rl := NewRateLimiter(1000, 1) // burst of 1, fast refill so test stays quick
+	rl := NewRateLimiter(1000, 1)
 	ctx := context.Background()
 	if err := rl.Wait(ctx); err != nil {
 		t.Fatal(err)
@@ -32,7 +32,7 @@ func TestRateLimiterThrottlesBeyondBurst(t *testing.T) {
 }
 
 func TestRateLimiterRespectsContextCancellation(t *testing.T) {
-	rl := NewRateLimiter(0.001, 1) // effectively never refills within test window
+	rl := NewRateLimiter(0.001, 1)
 	ctx := context.Background()
 	if err := rl.Wait(ctx); err != nil {
 		t.Fatal(err)

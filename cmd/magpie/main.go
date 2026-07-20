@@ -1,5 +1,3 @@
-// Command magpie is a passive, read-only reconnaissance tool that maps and
-// validates the /.well-known/ directory of a domain.
 package main
 
 import (

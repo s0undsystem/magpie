@@ -107,7 +107,7 @@ func TestWrapProducesNoOverlongLines(t *testing.T) {
 	wrapped := wrap(text, 20)
 	for _, line := range strings.Split(wrapped, "\n") {
 		if len(line) > 20 && !strings.Contains(line, " ") {
-			continue // a single word longer than width is allowed to overflow
+			continue
 		}
 		if len(line) > 25 {
 			t.Errorf("line too long (%d): %q", len(line), line)

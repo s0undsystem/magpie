@@ -12,17 +12,6 @@ import (
 	"github.com/harborproject/magpie/internal/validate"
 )
 
-// runFix implements --fix: scan host, pick the single most relevant fixable
-// artifact, and print only that artifact's corrected content to stdout —
-// nothing else, so `magpie example.org --fix > security.txt` works cleanly.
-// All explanatory text goes to stderr. magpie never writes to host itself;
-// this only prints what a human could choose to publish.
-//
-// Priority: a broken or missing security.txt is fixed first (it's the
-// artifact the --fix examples in the spec redirect straight to a file), then
-// an inactive mta-sts.txt DNS record, since publishing corrected security.txt
-// content and a DNS record value in the same stream would produce a file
-// that's neither.
 func runFix(cmd *cobra.Command, host string, opts orchestrate.Options) error {
 	raw, err := orchestrate.RunRaw(cmd.Context(), host, opts)
 	if err != nil {
@@ -59,9 +48,6 @@ func runFix(cmd *cobra.Command, host string, opts orchestrate.Options) error {
 	return nil
 }
 
-// needsSecurityTxtFix reports whether security.txt is missing, unreachable,
-// or has a validator finding --fix can correct (missing/malformed/expired
-// required fields).
 func needsSecurityTxtFix(r *scanpkg.Result, out validate.Output) bool {
 	if r == nil || r.Presence != scanpkg.PresencePresent {
 		return true

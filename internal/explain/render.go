@@ -6,8 +6,6 @@ import (
 	"strings"
 )
 
-// RenderText writes one Doc's longform explanation in a plain, readable
-// format.
 func RenderText(w io.Writer, d Doc) error {
 	var b strings.Builder
 	fmt.Fprintf(&b, "%s\n", d.ID)
@@ -25,8 +23,6 @@ func RenderText(w io.Writer, d Doc) error {
 	return err
 }
 
-// RenderAllText writes every Doc's longform explanation, separated by a
-// blank line, sorted by ID.
 func RenderAllText(w io.Writer, docs []Doc) error {
 	var b strings.Builder
 	for i, d := range docs {
@@ -43,10 +39,6 @@ func RenderAllText(w io.Writer, docs []Doc) error {
 	return err
 }
 
-// RenderMarkdown writes every Doc as a markdown reference document suitable
-// for a docs site. This is the same content RenderAllText prints, in
-// markdown form, so `magpie explain --all --md` doubles as the canonical
-// source for generated documentation.
 func RenderMarkdown(w io.Writer, docs []Doc) error {
 	var b strings.Builder
 	b.WriteString("# magpie finding reference\n\n")
@@ -67,7 +59,6 @@ func RenderMarkdown(w io.Writer, docs []Doc) error {
 	return err
 }
 
-// wrap does simple greedy word-wrapping at width columns.
 func wrap(s string, width int) string {
 	words := strings.Fields(s)
 	if len(words) == 0 {

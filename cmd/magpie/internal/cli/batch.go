@@ -17,16 +17,12 @@ import (
 	"github.com/harborproject/magpie/internal/report"
 )
 
-// batchResult is one domain's outcome in a -f run.
 type batchResult struct {
 	Domain string
 	Report report.Report
 	Err    error
 }
 
-// runBatch implements magpie -f domains.txt: read newline-delimited
-// domains, scan them under a global concurrency limit (separate from the
-// per-host --concurrency), and emit results in the file's original order.
 func runBatch(cmd *cobra.Command, path string) error {
 	domains, err := readDomainsFile(path)
 	if err != nil {
@@ -43,9 +39,6 @@ func runBatch(cmd *cobra.Command, path string) error {
 	return scanAndRender(cmd, domains, opts)
 }
 
-// scanAndRender scans hosts under the global concurrency limit and renders
-// results in hosts' original order, shared by batch mode (-f) and --ct
-// (primary domain + certificate-transparency-discovered subdomains).
 func scanAndRender(cmd *cobra.Command, hosts []string, opts orchestrate.Options) error {
 	filter, err := buildFilter()
 	if err != nil {
@@ -119,8 +112,6 @@ func scanAndRender(cmd *cobra.Command, hosts []string, opts orchestrate.Options)
 	}
 }
 
-// readDomainsFile reads newline-delimited domains, skipping blank lines and
-// lines starting with '#'.
 func readDomainsFile(path string) ([]string, error) {
 	f, err := os.Open(path)
 	if err != nil {
@@ -143,9 +134,6 @@ func readDomainsFile(path string) ([]string, error) {
 	return domains, nil
 }
 
-// progress reports batch scan status to an io.Writer, degrading from a
-// single self-overwriting TTY line to one plain line per completed domain
-// when stderr is not a terminal.
 type progress struct {
 	w      io.Writer
 	total  int

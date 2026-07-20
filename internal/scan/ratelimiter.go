@@ -6,10 +6,6 @@ import (
 	"time"
 )
 
-// RateLimiter is a minimal token-bucket limiter capping outbound request
-// rate independent of concurrency. It refills continuously (not in fixed
-// ticks) so bursts up to the bucket size are allowed but sustained rate is
-// bounded.
 type RateLimiter struct {
 	mu         sync.Mutex
 	tokens     float64
@@ -19,8 +15,6 @@ type RateLimiter struct {
 	now        func() time.Time
 }
 
-// NewRateLimiter creates a limiter refilling at ratePerSec tokens/second,
-// holding at most burst tokens.
 func NewRateLimiter(ratePerSec float64, burst int) *RateLimiter {
 	if ratePerSec <= 0 {
 		ratePerSec = 1
@@ -37,7 +31,6 @@ func NewRateLimiter(ratePerSec float64, burst int) *RateLimiter {
 	}
 }
 
-// Wait blocks until a token is available or ctx is cancelled.
 func (r *RateLimiter) Wait(ctx context.Context) error {
 	for {
 		r.mu.Lock()

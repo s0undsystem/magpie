@@ -10,7 +10,6 @@ import (
 	"github.com/muesli/termenv"
 )
 
-// bannerArt is magpie's mascot, shown above --help output.
 const bannerArt = `
       .---.        .-----------
      /     \  __  /    ------
@@ -24,7 +23,6 @@ const bannerArt = `
              ''` + "``" + `
 `
 
-// bannerWordmark is the magpie wordmark, shown beneath bannerArt.
 const bannerWordmark = `
  __   __  _______  _______  _______  ___   _______
 |  |_|  ||   _   ||       ||       ||   | |       |
@@ -35,13 +33,8 @@ const bannerWordmark = `
 |_|   |_||__| |__||_______||___|    |___| |_______|
 `
 
-// bannerColor is the teal used across the tool for headings, matched here
-// for the mascot banner.
 var bannerColor = lipgloss.Color("6")
 
-// printBanner writes the mascot and wordmark to w, in teal when color is
-// appropriate for the destination (a real TTY, no NO_COLOR, not explicitly
-// disabled).
 func printBanner(w io.Writer) {
 	renderer := lipgloss.NewRenderer(w)
 	noColor := os.Getenv("NO_COLOR") != ""

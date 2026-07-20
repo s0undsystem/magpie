@@ -12,10 +12,6 @@ import (
 	"github.com/harborproject/magpie/internal/version"
 )
 
-// lookupDoc resolves a finding ID's documentation, checking validator-level
-// docs (internal/explain) first and falling back to correlation rule docs
-// (internal/correlate/rules.json) for CORR-* IDs, the same merge
-// `magpie explain` performs.
 func lookupDoc(id string, engine *correlate.Engine) explain.Doc {
 	if d, ok := explain.Lookup(id); ok {
 		return d
@@ -95,22 +91,17 @@ type sarifArtifactLocation struct {
 	URI string `json:"uri"`
 }
 
-// sarifLevel maps magpie's severity to a SARIF result/rule level.
 func sarifLevel(s finding.Severity) string {
 	switch s {
 	case finding.SeverityHigh:
 		return "error"
 	case finding.SeverityMedium:
 		return "warning"
-	default: // low, info
+	default:
 		return "note"
 	}
 }
 
-// SARIF writes rep's findings as a SARIF 2.1.0 log, suitable for GitHub code
-// scanning ingestion via `--sarif > results.sarif`. Rule descriptions are
-// drawn from internal/explain, the same longform text `magpie explain`
-// prints, so the two can never drift.
 func SARIF(w io.Writer, rep report.Report, opts Options) error {
 	findings := opts.Filter.Apply(rep.Findings)
 

@@ -5,10 +5,6 @@ import (
 	"strings"
 )
 
-// Condition is a small declarative condition tree. Exactly one field should
-// be set per node (a tagged union expressed as pointers/slices so it
-// round-trips cleanly through JSON). See CONTRIBUTING.md for the full
-// format contributed rule files must follow.
 type Condition struct {
 	Presence      *PresenceCond      `json:"presence,omitempty"`
 	Fact          *FactCond          `json:"fact,omitempty"`
@@ -20,16 +16,11 @@ type Condition struct {
 	Not           *Condition         `json:"not,omitempty"`
 }
 
-// PresenceCond matches when the document at Path has a Presence value in In
-// (one of "present", "absent", "soft404", "error", "redirected-offsite").
 type PresenceCond struct {
 	Path string   `json:"path"`
 	In   []string `json:"in"`
 }
 
-// FactCond compares a single fact value against a literal. Supported Op
-// values: eq, ne, contains, not_contains, not_empty, exists, not_exists,
-// lt, lte, gt, gte (the last four parse both sides as integers).
 type FactCond struct {
 	Path  string `json:"path"`
 	Key   string `json:"key"`
@@ -37,36 +28,26 @@ type FactCond struct {
 	Value string `json:"value,omitempty"`
 }
 
-// FactRef points at one fact on one document.
 type FactRef struct {
 	Path string `json:"path"`
 	Key  string `json:"key"`
 }
 
-// FactCompareCond compares two facts, possibly on different documents.
-// Supported Op values: eq, ne, conflict (true only when both facts exist,
-// are non-empty, and differ — used for cross-document disagreement checks).
 type FactCompareCond struct {
 	A  FactRef `json:"a"`
 	B  FactRef `json:"b"`
 	Op string  `json:"op"`
 }
 
-// FindingExistsCond matches when the validator for Path already emitted a
-// finding with the given ID.
 type FindingExistsCond struct {
 	Path string `json:"path"`
 	ID   string `json:"id"`
 }
 
-// CleanCountMinCond matches when at least Min documents across the whole
-// scan are present and produced zero validator findings.
 type CleanCountMinCond struct {
 	Min int `json:"min"`
 }
 
-// Eval evaluates a condition tree against a snapshot. A nil condition never
-// matches.
 func Eval(c *Condition, snap Snapshot) bool {
 	if c == nil {
 		return false

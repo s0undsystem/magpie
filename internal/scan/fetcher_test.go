@@ -29,9 +29,6 @@ func fastConfig(userAgent string) Config {
 	return cfg
 }
 
-// TestPresentAndAbsent verifies a normal well-behaved host: real
-// security.txt returns present, an undocumented path returns a genuine 404
-// (absent), and every result is correctly correlated to its request.
 func TestPresentAndAbsent(t *testing.T) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/.well-known/security.txt", func(w http.ResponseWriter, r *http.Request) {
@@ -76,10 +73,6 @@ func TestPresentAndAbsent(t *testing.T) {
 	}
 }
 
-// TestSoft404Detection is the most important correctness test: a host that
-// returns HTTP 200 with an HTML "page not found" body for every path,
-// including undocumented ones, must not report any well-known path as
-// present.
 func TestSoft404Detection(t *testing.T) {
 	softBody := `<!DOCTYPE html><html><head><title>Oops</title></head><body>` +
 		strings.Repeat("We could not find that page. ", 20) + `</body></html>`
@@ -108,10 +101,6 @@ func TestSoft404Detection(t *testing.T) {
 	}
 }
 
-// TestJSONKindRejectsHTML covers a host that serves an HTML error page with
-// a 200 for a JSON-only well-known path, but the body differs enough from
-// the control to slip past the raw soft-404 comparison — the kind-specific
-// check must still catch it.
 func TestJSONKindRejectsHTMLDespiteDifferingFromControl(t *testing.T) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/.well-known/openid-configuration", func(w http.ResponseWriter, r *http.Request) {
@@ -143,8 +132,6 @@ func TestJSONKindRejectsHTMLDespiteDifferingFromControl(t *testing.T) {
 	t.Fatal("openid-configuration result not found")
 }
 
-// TestTextKindRejectsEmbeddedHTML covers a text-only path whose body
-// contains an HTML error page despite a plausible content type.
 func TestTextKindRejectsEmbeddedHTML(t *testing.T) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/.well-known/security.txt", func(w http.ResponseWriter, r *http.Request) {
@@ -176,8 +163,6 @@ func TestTextKindRejectsEmbeddedHTML(t *testing.T) {
 	t.Fatal("security.txt result not found")
 }
 
-// TestRedirectOffsite verifies that a well-known path redirecting to a
-// different host is reported as redirected-offsite rather than followed.
 func TestRedirectOffsite(t *testing.T) {
 	var offsiteHits int
 	offsite := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -223,8 +208,6 @@ func TestRedirectOffsite(t *testing.T) {
 	t.Fatal("change-password result not found")
 }
 
-// TestRedirectSameHostFollowed verifies same-host redirects are followed
-// normally and do not get flagged as offsite.
 func TestRedirectSameHostFollowed(t *testing.T) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/.well-known/change-password", func(w http.ResponseWriter, r *http.Request) {
@@ -259,7 +242,6 @@ func TestRedirectSameHostFollowed(t *testing.T) {
 	t.Fatal("change-password result not found")
 }
 
-// TestTooManyRedirectsIsError verifies the 5-hop cap is enforced.
 func TestTooManyRedirectsIsError(t *testing.T) {
 	mux := http.NewServeMux()
 	for i := 0; i < 8; i++ {
@@ -293,7 +275,6 @@ func TestTooManyRedirectsIsError(t *testing.T) {
 	t.Fatal("security.txt result not found")
 }
 
-// TestUserAgentSent verifies magpie identifies itself.
 func TestUserAgentSent(t *testing.T) {
 	var gotUA string
 	mux := http.NewServeMux()
@@ -315,8 +296,6 @@ func TestUserAgentSent(t *testing.T) {
 	}
 }
 
-// TestSingleGETPerPath verifies exactly one request is made per documented
-// path plus one control request — no retries, no guessing.
 func TestSingleGETPerPath(t *testing.T) {
 	var mu countingMux
 	mux := http.NewServeMux()
@@ -332,14 +311,12 @@ func TestSingleGETPerPath(t *testing.T) {
 	if _, _, err := f.Scan(context.Background(), srv.URL, entries); err != nil {
 		t.Fatalf("Scan() error = %v", err)
 	}
-	want := len(entries) + 1 // +1 control probe
+	want := len(entries) + 1
 	if got := mu.count(); got != want {
 		t.Errorf("total requests = %d, want %d (one per documented path plus one control)", got, want)
 	}
 }
 
-// TestScanIsDeterministic verifies two scans of an unchanged host produce
-// identically ordered, identically valued results (timing aside).
 func TestScanIsDeterministic(t *testing.T) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/.well-known/security.txt", func(w http.ResponseWriter, r *http.Request) {

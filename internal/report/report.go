@@ -1,5 +1,3 @@
-// Package report defines magpie's top-level scan result: the structure
-// every renderer (terminal, JSON, markdown, CSV) draws from.
 package report
 
 import (
@@ -11,13 +9,8 @@ import (
 	"github.com/harborproject/magpie/internal/scan"
 )
 
-// SchemaVersion is the stable version of the JSON report schema. Bump it
-// only on breaking changes to the JSON shape.
 const SchemaVersion = 1
 
-// PathResult is one documented well-known path's fetch outcome, trimmed to
-// what every renderer needs (the full response body lives only in the
-// scan.Result used to build the report, not in the report itself).
 type PathResult struct {
 	Path              string        `json:"path"`
 	URL               string        `json:"url"`
@@ -30,7 +23,6 @@ type PathResult struct {
 	Total             time.Duration `json:"total_ms"`
 }
 
-// Report is the complete result of scanning one domain.
 type Report struct {
 	SchemaVersion int               `json:"schema_version"`
 	Domain        string            `json:"domain"`
@@ -39,15 +31,10 @@ type Report struct {
 	Paths         []PathResult      `json:"paths"`
 	Findings      []finding.Finding `json:"findings"`
 	Inference     infer.Result      `json:"inference"`
-	// SecurityTxtExpiresDaysRemaining mirrors security.txt's
-	// expires_days_remaining fact, kept on the report (rather than only in
-	// validator facts) so --diff can report Expires countdown movement
-	// between snapshots without re-parsing security.txt.
+
 	SecurityTxtExpiresDaysRemaining *int `json:"security_txt_expires_days_remaining,omitempty"`
 }
 
-// Build assembles a Report from raw scan results and already-computed
-// findings/inference, sorting paths and findings deterministically.
 func Build(domain string, scannedAt time.Time, results []scan.Result, ctrl scan.Control, findings []finding.Finding, inference infer.Result, expiresDaysRemaining *int) Report {
 	paths := make([]PathResult, 0, len(results))
 	for _, r := range results {
@@ -80,7 +67,6 @@ func Build(domain string, scannedAt time.Time, results []scan.Result, ctrl scan.
 	}
 }
 
-// PresentPaths returns only the paths determined to be genuinely present.
 func (r Report) PresentPaths() []PathResult {
 	var out []PathResult
 	for _, p := range r.Paths {
@@ -91,7 +77,6 @@ func (r Report) PresentPaths() []PathResult {
 	return out
 }
 
-// CountBySeverity returns the number of findings at each severity level.
 func (r Report) CountBySeverity() map[finding.Severity]int {
 	counts := map[finding.Severity]int{}
 	for _, f := range r.Findings {

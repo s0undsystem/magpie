@@ -9,11 +9,6 @@ import (
 	"github.com/harborproject/magpie/internal/scan"
 )
 
-// registerBuiltins wires up the handful of rules whose logic genuinely
-// can't be expressed as a static Condition tree: iterating over a variable
-// number of documents (CORR-007), a live DNS lookup plus wildcard pattern
-// matching (CORR-022), and a generic cross-document fact-map comparison
-// (CORR-024). Every other rule lives entirely in rules.json.
 func registerBuiltins(e *Engine) {
 	e.RegisterBuiltin("corr007_offsite_redirects", corr007OffsiteRedirects)
 	e.RegisterBuiltin("corr022_mx_mismatch", corr022MXMismatch)
@@ -29,8 +24,6 @@ func sortedPaths(snap Snapshot) []string {
 	return paths
 }
 
-// corr007OffsiteRedirects emits one finding per well-known path whose
-// redirect chain left the original host.
 func corr007OffsiteRedirects(snap Snapshot, rule Rule, _ EvalOptions) []finding.Finding {
 	var out []finding.Finding
 	for _, path := range sortedPaths(snap) {
@@ -48,10 +41,6 @@ func corr007OffsiteRedirects(snap Snapshot, rule Rule, _ EvalOptions) []finding.
 	return out
 }
 
-// corr022MXMismatch checks whether every MX host actually serving mail for
-// the domain is covered by an mx pattern in mta-sts.txt. It requires a live
-// DNS MX lookup, supplied via opts.LookupMX; when that's unavailable the
-// rule simply doesn't fire.
 func corr022MXMismatch(snap Snapshot, rule Rule, opts EvalOptions) []finding.Finding {
 	if opts.LookupMX == nil {
 		return nil
@@ -98,7 +87,7 @@ func matchesAnyMXPattern(mx string, patterns []string) bool {
 			continue
 		}
 		if strings.HasPrefix(p, "*.") {
-			suffix := p[1:] // ".example.com"
+			suffix := p[1:]
 			if strings.HasSuffix(mx, suffix) && mx != suffix[1:] {
 				return true
 			}
@@ -111,18 +100,8 @@ func matchesAnyMXPattern(mx string, patterns []string) bool {
 	return false
 }
 
-// comparableFactKeys are logical facts the generic disagreement scanner
-// compares across documents. "issuer" is intentionally excluded for the
-// (openid-configuration, oauth-authorization-server) pair, since CORR-020
-// already owns that specific comparison; the exclusion keeps this rule
-// focused on conflicts "not anticipated by a specific rule," per its
-// purpose. New validators can opt into this check simply by emitting a fact
-// under one of these keys — no code change required here.
 var comparableFactKeys = []string{"issuer", "organization_name", "app_identity", "contact_domain"}
 
-// corr024GenericDisagreement scans every document's facts for shared
-// logical-fact keys and flags any pair of documents that assert different
-// non-empty values for the same key.
 func corr024GenericDisagreement(snap Snapshot, rule Rule, _ EvalOptions) []finding.Finding {
 	var out []finding.Finding
 	paths := sortedPaths(snap)

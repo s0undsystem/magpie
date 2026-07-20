@@ -7,8 +7,6 @@ import (
 	"github.com/harborproject/magpie/internal/report"
 )
 
-// withTempHome redirects ~/.magpie (via $HOME) to a temp directory so tests
-// never touch the real user config.
 func withTempHome(t *testing.T) {
 	t.Helper()
 	t.Setenv("HOME", t.TempDir())

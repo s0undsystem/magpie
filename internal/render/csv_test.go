@@ -28,7 +28,7 @@ func TestCSVHeaderAndRow(t *testing.T) {
 	if row[0] != "example.org" {
 		t.Errorf("row domain = %q", row[0])
 	}
-	// findings_high column (index 3) should reflect the one high finding.
+
 	if row[3] != "1" {
 		t.Errorf("findings_high = %q, want 1", row[3])
 	}

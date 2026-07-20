@@ -89,7 +89,7 @@ func TestJSONLineIsSingleLine(t *testing.T) {
 
 func TestJSONDeterministic(t *testing.T) {
 	rep := fixtureReport()
-	rep.ScannedAt = time.Time{} // hold timestamp fixed so we compare full bytes
+	rep.ScannedAt = time.Time{}
 	for i := range rep.Paths {
 		rep.Paths[i].TTFB, rep.Paths[i].Total = 0, 0
 	}

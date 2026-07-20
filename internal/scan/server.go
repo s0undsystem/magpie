@@ -2,9 +2,6 @@ package scan
 
 import "net/http"
 
-// DetectServer derives a short, best-effort CDN or server label from
-// response headers. It only reads headers already returned by the single GET
-// magpie made for the path; it performs no additional probing.
 func DetectServer(h http.Header) string {
 	if h == nil {
 		return ""
