@@ -45,6 +45,10 @@ func scanAndRender(cmd *cobra.Command, hosts []string, opts orchestrate.Options)
 		return err
 	}
 
+	if !scan.json && !scan.csv && !scan.noBanner {
+		printBanner(cmd.OutOrStdout())
+	}
+
 	results := make([]batchResult, len(hosts))
 	sem := make(chan struct{}, scan.globalConcurrency)
 	var wg sync.WaitGroup

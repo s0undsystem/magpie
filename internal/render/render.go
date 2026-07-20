@@ -9,5 +9,6 @@ type Options struct {
 	NoTimestamps bool
 	Timing       bool
 	Compare      bool
+	ShowBanner   bool
 	Filter       finding.Filter
 }

@@ -33,6 +33,7 @@ type scanFlags struct {
 	timing            bool
 	noTimestamps      bool
 	noColor           bool
+	noBanner          bool
 	fix               bool
 	save              bool
 	diff              bool
@@ -64,6 +65,7 @@ func addScanFlags(cmd *cobra.Command) {
 	f.BoolVar(&scan.timing, "timing", false, "show per-path timing in terminal output")
 	f.BoolVar(&scan.noTimestamps, "no-timestamps", false, "suppress timestamps for deterministic output")
 	f.BoolVar(&scan.noColor, "no-color", false, "disable colored terminal output")
+	f.BoolVar(&scan.noBanner, "no-banner", false, "suppress the mascot banner in terminal output")
 	f.BoolVar(&scan.fix, "fix", false, "print corrected artifacts to stdout instead of a report")
 	f.BoolVar(&scan.save, "save", false, "save a snapshot of this run under ~/.magpie/snapshots/")
 	f.BoolVar(&scan.diff, "diff", false, "compare against the most recent snapshot")
@@ -106,16 +108,21 @@ func runScan(cmd *cobra.Command, args []string) error {
 		return runCT(cmd, host, opts)
 	}
 
+	sp := newSpinner(cmd.ErrOrStderr(), "scanning "+host+"...")
+	sp.Start()
 	rep, err := orchestrate.Run(cmd.Context(), host, opts)
+	sp.Stop()
 	if err != nil {
 		return err
 	}
 
+	plainOutput := scan.json || scan.md || scan.csv || scan.sarif
 	renderOpts := render.Options{
 		NoColor:      scan.noColor || os.Getenv("NO_COLOR") != "" || !isatty.IsTerminal(os.Stdout.Fd()),
 		NoTimestamps: scan.noTimestamps,
 		Timing:       scan.timing,
 		Compare:      scan.compare,
+		ShowBanner:   !plainOutput && !scan.noBanner,
 		Filter:       filter,
 	}
 

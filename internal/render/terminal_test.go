@@ -75,8 +75,8 @@ func TestTerminalNoTimestampsOmitsScanTime(t *testing.T) {
 func TestTerminalTimingFlagShowsDurations(t *testing.T) {
 	var buf bytes.Buffer
 	Terminal(&buf, fixtureReport(), Options{NoColor: true, Timing: true})
-	if !strings.Contains(buf.String(), "ttfb=") {
-		t.Error("expected ttfb column with --timing")
+	if !strings.Contains(buf.String(), "TTFB") {
+		t.Error("expected TTFB column with --timing")
 	}
 }
 
