@@ -26,26 +26,46 @@ magpie is a passive, read-only reconnaissance tool that maps and validates the `
 ```
 $ magpie example.org
 
-magpie — example.org
-scanned 2026-07-20 09:14:02 UTC
+╭─────────────────────────────────╮
+│ magpie — example.org            │
+│ scanned 2026-07-20 09:14:02 UTC │
+╰─────────────────────────────────╯
 
 WELL-KNOWN PATHS
-  /.well-known/security.txt                present   text/plain
-  /.well-known/openid-configuration        present   application/json
-  /.well-known/mta-sts.txt                 absent    text/html
-  ...
+╭─────────────────────────────────┬────────┬────────────────┬──────╮
+│PATH                             │PRESENCE│CONTENT-TYPE    │SERVER│
+├─────────────────────────────────┼────────┼────────────────┼──────┤
+│/.well-known/security.txt        │present │text/plain      │      │
+│/.well-known/openid-configuration│present │application/json│      │
+│/.well-known/mta-sts.txt         │absent  │text/html       │      │
+│/.well-known/assetlinks.json     │absent  │text/html       │      │
+╰─────────────────────────────────┴────────┴────────────────┴──────╯
 
 FINDINGS (3)
   DISCLOSURE
-    [HIGH]   SECTXT-004 certain  security.txt's Expires date is in the past.
-    [MEDIUM] CORR-013   inferred Published encryption key is unreachable or invalid.
+╭────────┬──────────┬──────────┬─────────────────────────────────────────────────────╮
+│SEVERITY│ID        │CONFIDENCE│MESSAGE                                              │
+├────────┼──────────┼──────────┼─────────────────────────────────────────────────────┤
+│HIGH    │SECTXT-004│certain   │security.txt's Expires date is in the past.          │
+│        │          │          │evidence: expired 3 day(s) ago (2026-07-17T00:00:00Z)│
+│MEDIUM  │CORR-013  │inferred  │Published encryption key is unreachable or invalid.  │
+│        │          │          │evidence: https://example.org/pgp-key.txt            │
+╰────────┴──────────┴──────────┴─────────────────────────────────────────────────────╯
+
   AUTH
-    [MEDIUM] CORR-017   inferred openid-configuration advertises request_uri support without requiring pre-registration.
+╭────────┬────────┬──────────┬───────────────────────────────────────────────────────────────────────────────────────╮
+│SEVERITY│ID      │CONFIDENCE│MESSAGE                                                                                │
+├────────┼────────┼──────────┼───────────────────────────────────────────────────────────────────────────────────────┤
+│MEDIUM  │CORR-017│inferred  │openid-configuration advertises request_uri support without requiring pre-registration.│
+│        │        │          │evidence: request_uri_parameter_supported=true, require_request_uri_registration=false│
+╰────────┴────────┴──────────┴───────────────────────────────────────────────────────────────────────────────────────╯
 
 INFERENCE
   identity provider: Okta (https://example.okta.com)
   mail security: mode=enforce dns_activated=true
 ```
+
+(the mascot banner also prints above this on every real run — trimmed here since it's already shown once at the top of this README)
 
 ## Install
 
