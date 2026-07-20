@@ -109,6 +109,10 @@ func runScan(cmd *cobra.Command, args []string) error {
 		RulesOverlay: rulesOverlay,
 	}
 
+	if scan.fix {
+		return runFix(cmd, host, opts)
+	}
+
 	rep, err := orchestrate.Run(cmd.Context(), host, opts)
 	if err != nil {
 		return err

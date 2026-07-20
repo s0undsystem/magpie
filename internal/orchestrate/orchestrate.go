@@ -39,11 +39,32 @@ type Options struct {
 	DisableDNS bool
 }
 
+// RawScan is the full internal scan output: the raw per-path fetch results
+// and validator outputs, plus the assembled report. Most callers only need
+// Report; tooling like --fix needs the raw fetched content (e.g. an
+// existing security.txt body) that report.Report deliberately doesn't
+// retain.
+type RawScan struct {
+	Results []scan.Result
+	Outputs map[string]validate.Output
+	Report  report.Report
+}
+
 // Run performs one full scan of host and returns the assembled report.
 func Run(ctx context.Context, host string, opts Options) (report.Report, error) {
-	reg, err := registry.Load()
+	raw, err := RunRaw(ctx, host, opts)
 	if err != nil {
 		return report.Report{}, err
+	}
+	return raw.Report, nil
+}
+
+// RunRaw performs one full scan of host and returns the raw fetch/validator
+// output alongside the assembled report.
+func RunRaw(ctx context.Context, host string, opts Options) (RawScan, error) {
+	reg, err := registry.Load()
+	if err != nil {
+		return RawScan{}, err
 	}
 
 	fetcher := scan.New(scan.Config{
@@ -57,7 +78,7 @@ func Run(ctx context.Context, host string, opts Options) (report.Report, error) 
 	scannedAt := time.Now().UTC()
 	results, ctrl, err := fetcher.Scan(ctx, "https://"+host, reg.Entries)
 	if err != nil {
-		return report.Report{}, err
+		return RawScan{}, err
 	}
 
 	client := &http.Client{
@@ -90,7 +111,7 @@ func Run(ctx context.Context, host string, opts Options) (report.Report, error) 
 	engine := correlate.NewEngine()
 	if len(opts.RulesOverlay) > 0 {
 		if err := engine.LoadOverlay(opts.RulesOverlay); err != nil {
-			return report.Report{}, err
+			return RawScan{}, err
 		}
 	}
 
@@ -124,7 +145,11 @@ func Run(ctx context.Context, host string, opts Options) (report.Report, error) 
 		}
 	}
 
-	return report.Build(host, scannedAt, results, ctrl, findings, inference, expiresDays), nil
+	return RawScan{
+		Results: results,
+		Outputs: outputs,
+		Report:  report.Build(host, scannedAt, results, ctrl, findings, inference, expiresDays),
+	}, nil
 }
 
 // auxFetcher returns a validate.AuxFetcher performing exactly one GET

@@ -204,6 +204,14 @@ func parseSecurityTxt(body []byte) parsedSecurityTxt {
 
 const maxExpiresValidity = 365 * 24 * time.Hour
 
+// ParseSecurityTxtFields extracts field values (canonical name -> values in
+// file order) from a security.txt body, ignoring PGP armor and malformed
+// lines. Exported for internal/fix, which reuses discovered values when
+// generating a corrected file rather than re-implementing this parser.
+func ParseSecurityTxtFields(body []byte) map[string][]string {
+	return parseSecurityTxt(body).Fields
+}
+
 func (SecurityTxtValidator) Validate(ctx Context) Output {
 	out := Output{Facts: Facts{}}
 	r := ctx.Result
