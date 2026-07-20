@@ -2,8 +2,17 @@ package cli
 
 import (
 	"fmt"
+	"os"
+	"time"
 
+	"github.com/mattn/go-isatty"
 	"github.com/spf13/cobra"
+
+	"github.com/harborproject/magpie/internal/finding"
+	"github.com/harborproject/magpie/internal/orchestrate"
+	"github.com/harborproject/magpie/internal/render"
+	"github.com/harborproject/magpie/internal/report"
+	"github.com/harborproject/magpie/internal/version"
 )
 
 // scanFlags holds the flags shared by the single-domain scan invocation.
@@ -73,5 +82,71 @@ func runScan(cmd *cobra.Command, args []string) error {
 	if len(args) == 0 {
 		return cmd.Help()
 	}
-	return fmt.Errorf("scanning %s is not implemented yet", args[0])
+	host := args[0]
+
+	filter, err := buildFilter()
+	if err != nil {
+		return err
+	}
+
+	var rulesOverlay []byte
+	if scan.rulesFile != "" {
+		rulesOverlay, err = os.ReadFile(scan.rulesFile)
+		if err != nil {
+			return fmt.Errorf("reading --rules file: %w", err)
+		}
+	}
+
+	opts := orchestrate.Options{
+		Concurrency:  scan.concurrency,
+		RatePerSec:   float64(scan.concurrency),
+		Timeout:      time.Duration(scan.timeoutSecs) * time.Second,
+		UserAgent:    version.UserAgent(""),
+		MaxRedirects: 5,
+		RulesOverlay: rulesOverlay,
+	}
+
+	rep, err := orchestrate.Run(cmd.Context(), host, opts)
+	if err != nil {
+		return err
+	}
+
+	renderOpts := render.Options{
+		NoColor:      scan.noColor || os.Getenv("NO_COLOR") != "" || !isatty.IsTerminal(os.Stdout.Fd()),
+		NoTimestamps: scan.noTimestamps,
+		Timing:       scan.timing,
+		Filter:       filter,
+	}
+
+	out := cmd.OutOrStdout()
+	switch {
+	case scan.json:
+		return render.JSON(out, rep, renderOpts)
+	case scan.md:
+		return render.Markdown(out, rep, renderOpts)
+	case scan.csv:
+		return render.CSV(out, []report.Report{rep}, renderOpts)
+	default:
+		return render.Terminal(out, rep, renderOpts)
+	}
+}
+
+func buildFilter() (finding.Filter, error) {
+	minSev, err := finding.ParseSeverity(scan.minSeverity)
+	if err != nil {
+		return finding.Filter{}, err
+	}
+	minConf, err := finding.ParseConfidence(scan.minConfidence)
+	if err != nil {
+		return finding.Filter{}, err
+	}
+	var cats []finding.Category
+	for _, c := range scan.category {
+		cat, err := finding.ParseCategory(c)
+		if err != nil {
+			return finding.Filter{}, err
+		}
+		cats = append(cats, cat)
+	}
+	return finding.Filter{MinSeverity: minSev, MinConfidence: minConf, Categories: cats}, nil
 }
