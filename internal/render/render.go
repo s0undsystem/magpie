@@ -13,5 +13,6 @@ type Options struct {
 	NoColor      bool
 	NoTimestamps bool
 	Timing       bool
+	Compare      bool
 	Filter       finding.Filter
 }

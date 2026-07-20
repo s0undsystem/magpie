@@ -14,28 +14,28 @@ import (
 // SeverityChange is a finding ID whose severity differs between two
 // snapshots.
 type SeverityChange struct {
-	ID  string
-	Old finding.Severity
-	New finding.Severity
+	ID  string           `json:"id"`
+	Old finding.Severity `json:"old"`
+	New finding.Severity `json:"new"`
 }
 
 // Diff is everything that changed between two scans of the same domain.
 type Diff struct {
-	Domain  string
-	OldScan time.Time
-	NewScan time.Time
+	Domain  string    `json:"domain"`
+	OldScan time.Time `json:"old_scan"`
+	NewScan time.Time `json:"new_scan"`
 
-	PathsAppeared    []string // presence became "present"
-	PathsDisappeared []string // presence stopped being "present"
+	PathsAppeared    []string `json:"paths_appeared,omitempty"`    // presence became "present"
+	PathsDisappeared []string `json:"paths_disappeared,omitempty"` // presence stopped being "present"
 
-	FindingsNew      []finding.Finding // IDs present now but not before
-	FindingsResolved []finding.Finding // IDs present before but not now
-	SeverityChanges  []SeverityChange  // IDs present in both, severity differs
+	FindingsNew      []finding.Finding `json:"findings_new,omitempty"`      // IDs present now but not before
+	FindingsResolved []finding.Finding `json:"findings_resolved,omitempty"` // IDs present before but not now
+	SeverityChanges  []SeverityChange  `json:"severity_changes,omitempty"`  // IDs present in both, severity differs
 
 	// ExpiresDaysOld/New are security.txt's expires_days_remaining fact at
 	// each snapshot, nil if unknown at that snapshot.
-	ExpiresDaysOld *int
-	ExpiresDaysNew *int
+	ExpiresDaysOld *int `json:"expires_days_old,omitempty"`
+	ExpiresDaysNew *int `json:"expires_days_new,omitempty"`
 }
 
 // Compute diffs two reports for the same domain, old being the earlier

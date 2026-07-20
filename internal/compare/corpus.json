@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "updated": "2026-01-01",
+  "description": "A small, curated reference sample describing what well-run, security-conscious domains typically publish under /.well-known/. This is illustrative editorial context to help a reader judge a scan result, not a statistical population — do not cite these numbers as measured survey data. See README.md's Design Principles section and the methodology field below for how it was assembled.",
+  "methodology": "Compiled by editorial judgment informed by publicly observable practice among domains known for maintained public vulnerability disclosure programs, rounded to the nearest 5%. To refresh with real measurements: maintain a domain list in docs/reference-corpus-domains.txt, run `magpie -f docs/reference-corpus-domains.txt --json --no-timestamps`, compute the percentage of domains where each path's presence is \"present\", and replace the percent_present values below along with the 'updated' date and 'sample_size'.",
+  "sample_size": 0,
+  "paths": [
+    { "path": "security.txt", "percent_present": 80, "note": "The strongest single signal of a maintained disclosure program." },
+    { "path": "robots.txt", "percent_present": 95, "note": "Near-universal; not itself a security maturity signal." },
+    { "path": "mta-sts.txt", "percent_present": 40, "note": "Common among domains operating their own mail infrastructure." },
+    { "path": "change-password", "percent_present": 30, "note": "Growing password-manager convention, still far from universal." },
+    { "path": "openid-configuration", "percent_present": 25, "note": "Present only on domains running federated authentication." },
+    { "path": "oauth-authorization-server", "percent_present": 15, "note": "Present only on domains running a standalone OAuth authorization server." },
+    { "path": "assetlinks.json", "percent_present": 20, "note": "Present only on domains with a companion Android app." },
+    { "path": "apple-app-site-association", "percent_present": 20, "note": "Present only on domains with a companion iOS app." },
+    { "path": "webfinger", "percent_present": 10, "note": "Mostly seen on federated/social platforms." },
+    { "path": "host-meta", "percent_present": 5, "note": "Largely legacy; rarely published on new infrastructure." },
+    { "path": "dnt-policy.txt", "percent_present": 5, "note": "Do Not Track has fallen out of common practice." },
+    { "path": "manifest.json", "percent_present": 40, "note": "Common on domains that are also installable web apps, not itself a security signal." }
+  ]
+}

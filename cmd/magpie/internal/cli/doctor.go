@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"path/filepath"
 
 	"github.com/harborproject/magpie/internal/registry"
 	"github.com/harborproject/magpie/internal/version"
@@ -33,14 +34,19 @@ func newDoctorCmd() *cobra.Command {
 			}
 
 			dir, err := registry.CacheDir()
-			if err != nil {
+			switch {
+			case err != nil:
 				ok = false
 				fmt.Fprintf(out, "[FAIL] config directory: %v\n", err)
-			} else if info, statErr := os.Stat(dir); statErr != nil {
-				ok = false
-				fmt.Fprintf(out, "[FAIL] config directory %s: %v\n", dir, statErr)
-			} else {
-				fmt.Fprintf(out, "[ OK ] config directory: %s (mode %s)\n", dir, info.Mode())
+			default:
+				probe := filepath.Join(dir, ".doctor-write-test")
+				if writeErr := os.WriteFile(probe, []byte("ok"), 0o644); writeErr != nil {
+					ok = false
+					fmt.Fprintf(out, "[FAIL] config directory %s is not writable: %v\n", dir, writeErr)
+				} else {
+					os.Remove(probe)
+					fmt.Fprintf(out, "[ OK ] config directory: %s (writable)\n", dir)
+				}
 			}
 
 			if _, err := net.LookupHost("www.iana.org"); err != nil {

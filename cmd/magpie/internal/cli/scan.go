@@ -113,6 +113,10 @@ func runScan(cmd *cobra.Command, args []string) error {
 		return runFix(cmd, host, opts)
 	}
 
+	if scan.watch {
+		return runWatch(cmd, host, opts)
+	}
+
 	rep, err := orchestrate.Run(cmd.Context(), host, opts)
 	if err != nil {
 		return err
@@ -122,6 +126,7 @@ func runScan(cmd *cobra.Command, args []string) error {
 		NoColor:      scan.noColor || os.Getenv("NO_COLOR") != "" || !isatty.IsTerminal(os.Stdout.Fd()),
 		NoTimestamps: scan.noTimestamps,
 		Timing:       scan.timing,
+		Compare:      scan.compare,
 		Filter:       filter,
 	}
 
@@ -144,6 +149,8 @@ func runScan(cmd *cobra.Command, args []string) error {
 		return render.Markdown(out, rep, renderOpts)
 	case scan.csv:
 		return render.CSV(out, []report.Report{rep}, renderOpts)
+	case scan.sarif:
+		return render.SARIF(out, rep, renderOpts)
 	default:
 		return render.Terminal(out, rep, renderOpts)
 	}

@@ -9,6 +9,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/muesli/termenv"
 
+	"github.com/harborproject/magpie/internal/compare"
 	"github.com/harborproject/magpie/internal/finding"
 	"github.com/harborproject/magpie/internal/report"
 	"github.com/harborproject/magpie/internal/scan"
@@ -146,8 +147,51 @@ func Terminal(w io.Writer, rep report.Report, opts Options) error {
 		b.WriteString(muted.Render("  nothing inferred") + "\n")
 	}
 
+	// --- Compare -------------------------------------------------------
+	if opts.Compare {
+		if err := appendCompareSection(&b, rep, base, heading, muted); err != nil {
+			return err
+		}
+	}
+
 	_, err := w.Write([]byte(b.String()))
 	return err
+}
+
+// appendCompareSection renders the target's presence alongside
+// internal/compare's curated reference corpus.
+func appendCompareSection(b *strings.Builder, rep report.Report, base, heading, muted lipgloss.Style) error {
+	corpus, err := compare.Load()
+	if err != nil {
+		return err
+	}
+
+	present := map[string]bool{}
+	for _, p := range rep.PresentPaths() {
+		present[p.Path] = true
+	}
+
+	b.WriteString(heading.Render("COMPARE TO REFERENCE CORPUS") + "\n")
+	b.WriteString(muted.Render("  "+corpus.Description) + "\n\n")
+
+	pathCol := len("path")
+	for _, row := range compare.Rows(corpus, present) {
+		if l := len("/.well-known/" + row.Path); l > pathCol {
+			pathCol = l
+		}
+	}
+	for _, row := range compare.Rows(corpus, present) {
+		mark := "absent "
+		style := base.Foreground(colorAbsent)
+		if row.TargetPresent {
+			mark = "present"
+			style = base.Foreground(colorPresent)
+		}
+		fmt.Fprintf(b, "  %-*s  %s  typically present in ~%d%% of the reference sample\n",
+			pathCol, "/.well-known/"+row.Path, style.Render(mark), row.PercentPresent)
+	}
+	b.WriteString("\n")
+	return nil
 }
 
 func widestPath(paths []report.PathResult) int {
