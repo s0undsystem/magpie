@@ -2,9 +2,11 @@ package validate
 
 import (
 	"encoding/json"
+	"net/url"
 	"strconv"
 	"strings"
 
+	"github.com/harborproject/magpie/internal/domainutil"
 	"github.com/harborproject/magpie/internal/finding"
 	"github.com/harborproject/magpie/internal/scan"
 )
@@ -114,7 +116,38 @@ func (OpenIDConfigValidator) Validate(ctx Context) Output {
 		out.Facts["require_request_uri_registration"] = strconv.FormatBool(required)
 	}
 
+	addOIDCCrossCheckFacts(doc, ctx, &out)
+
 	return out
+}
+
+// addOIDCCrossCheckFacts computes facts shared by the openid-configuration
+// and oauth-authorization-server validators that the correlation engine
+// consumes directly (issuer/origin match, jwks_uri domain, and a combined
+// list of endpoint URLs used to detect plaintext HTTP endpoints).
+func addOIDCCrossCheckFacts(doc openIDDoc, ctx Context, out *Output) {
+	if doc.Issuer != "" {
+		if u, err := url.Parse(doc.Issuer); err == nil && u.Hostname() != "" {
+			out.Facts["issuer_matches_origin"] = strconv.FormatBool(domainutil.SameRegistrable(u.Hostname(), ctx.Host))
+		}
+	}
+	if doc.JWKSURI != "" && doc.Issuer != "" {
+		ju, jerr := url.Parse(doc.JWKSURI)
+		iu, ierr := url.Parse(doc.Issuer)
+		if jerr == nil && ierr == nil && ju.Hostname() != "" && iu.Hostname() != "" {
+			out.Facts["jwks_uri_offsite"] = strconv.FormatBool(!domainutil.SameRegistrable(ju.Hostname(), iu.Hostname()))
+		}
+	}
+
+	var endpoints []string
+	for _, e := range []string{doc.Issuer, doc.JWKSURI, doc.TokenEndpoint, doc.AuthorizationEndpoint} {
+		if e != "" {
+			endpoints = append(endpoints, e)
+		}
+	}
+	if len(endpoints) > 0 {
+		out.Facts["endpoint_urls"] = strings.Join(endpoints, ",")
+	}
 }
 
 func hasAnyFold(list []string, targets ...string) bool {

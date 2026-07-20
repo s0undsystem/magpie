@@ -1,0 +1,390 @@
+[
+  {
+    "id": "CORR-001",
+    "severity": "high",
+    "confidence": "inferred",
+    "category": "disclosure",
+    "message": "Federated authentication is exposed with no published way to report a vulnerability in it.",
+    "evidence": "openid-configuration: present; security.txt: {{presence:security.txt}}",
+    "spec_ref": "RFC 9116",
+    "explanation": "openid-configuration marks a domain as running federated authentication infrastructure — a natural target for security research. Without a security.txt, a researcher who finds a problem in that authentication surface has no sanctioned channel to report it, which pushes disclosure toward public channels or silence. Remediation: publish an RFC 9116 security.txt at /.well-known/security.txt with a working Contact field.",
+    "when": {
+      "and": [
+        { "presence": { "path": "openid-configuration", "in": ["present"] } },
+        { "presence": { "path": "security.txt", "in": ["absent", "soft404", "error", "redirected-offsite"] } }
+      ]
+    }
+  },
+  {
+    "id": "CORR-002",
+    "severity": "low",
+    "confidence": "inferred",
+    "category": "disclosure",
+    "message": "Mobile app surface published, disclosure policy does not mention mobile scope.",
+    "evidence": "assetlinks.json/apple-app-site-association present; security.txt fields do not mention \"mobile\"",
+    "spec_ref": "RFC 9116",
+    "explanation": "assetlinks.json or apple-app-site-association shows the organization ships a mobile app that is itself in scope for vulnerability reports, but its security.txt never says so. Researchers who find a mobile-specific issue may assume it's out of scope and not report it. Remediation: mention mobile app scope in the Policy field or add a note near Contact.",
+    "when": {
+      "and": [
+        { "or": [
+          { "presence": { "path": "assetlinks.json", "in": ["present"] } },
+          { "presence": { "path": "apple-app-site-association", "in": ["present"] } }
+        ] },
+        { "presence": { "path": "security.txt", "in": ["present"] } },
+        { "fact": { "path": "security.txt", "key": "mentions_mobile_scope", "op": "eq", "value": "false" } }
+      ]
+    }
+  },
+  {
+    "id": "CORR-003",
+    "severity": "medium",
+    "confidence": "inferred",
+    "category": "disclosure",
+    "message": "security.txt's Expires date is approaching.",
+    "evidence": "{{fact:security.txt.expires_days_remaining}} day(s) remaining",
+    "spec_ref": "RFC 9116 §2.5.5",
+    "explanation": "RFC 9116 requires clients to treat an expired security.txt as invalid, so a file that is about to expire is about to stop being a trustworthy disclosure channel. Remediation: refresh the Expires field, ideally as part of a recurring calendar reminder rather than a one-off fix.",
+    "when": {
+      "and": [
+        { "presence": { "path": "security.txt", "in": ["present"] } },
+        { "fact": { "path": "security.txt", "key": "expires_days_remaining", "op": "gte", "value": "0" } },
+        { "fact": { "path": "security.txt", "key": "expires_days_remaining", "op": "lt", "value": "30" } }
+      ]
+    }
+  },
+  {
+    "id": "CORR-004",
+    "severity": "high",
+    "confidence": "inferred",
+    "category": "disclosure",
+    "message": "security.txt's Expires date has already passed.",
+    "evidence": "{{fact:security.txt.expires_days_remaining}} day(s) (negative means expired)",
+    "spec_ref": "RFC 9116 §2.5.5",
+    "explanation": "Per RFC 9116 §2.5.5, once Expires has passed the file must be treated as stale, meaning the domain effectively has no valid disclosure channel even though a file exists at the URL. Remediation: refresh Expires immediately; consider automating renewal so this can't recur silently.",
+    "when": {
+      "and": [
+        { "presence": { "path": "security.txt", "in": ["present"] } },
+        { "fact": { "path": "security.txt", "key": "expires_days_remaining", "op": "lt", "value": "0" } }
+      ]
+    }
+  },
+  {
+    "id": "CORR-005",
+    "severity": "low",
+    "confidence": "inferred",
+    "category": "mail",
+    "message": "Mail transport policy appears to have been left in testing.",
+    "evidence": "mode=testing, policy id age {{fact:mta-sts.txt.mta_sts_dns_txt_id_age_days}} day(s)",
+    "spec_ref": "RFC 8461 §5",
+    "explanation": "MTA-STS testing mode collects reports without enforcing TLS, and it exists as a transitional step, not a destination. A testing-mode policy whose DNS-published id looks weeks or months old suggests enforcement was never turned on. Remediation: review MTA-STS reports and switch mode to enforce, or explicitly document why testing is intentional.",
+    "when": {
+      "and": [
+        { "presence": { "path": "mta-sts.txt", "in": ["present"] } },
+        { "fact": { "path": "mta-sts.txt", "key": "mode", "op": "eq", "value": "testing" } },
+        { "fact": { "path": "mta-sts.txt", "key": "mta_sts_dns_txt_id_age_days", "op": "gt", "value": "90" } }
+      ]
+    }
+  },
+  {
+    "id": "CORR-006",
+    "severity": "low",
+    "confidence": "inferred",
+    "category": "hygiene",
+    "message": "change-password is documented by the well-known registry but returns a soft-404 here.",
+    "evidence": "presence: soft404",
+    "spec_ref": "W3C well-known change-password",
+    "explanation": "change-password is a registered convention password managers rely on to deep-link users into an account's password change flow. A soft-404 at that path means the convention is unimplemented even though the host clearly serves other content there. Remediation: redirect /.well-known/change-password to the real password-change page.",
+    "when": { "presence": { "path": "change-password", "in": ["soft404"] } }
+  },
+  {
+    "id": "CORR-007",
+    "severity": "medium",
+    "confidence": "inferred",
+    "category": "hygiene",
+    "message": "A well-known path redirects to a different registrable domain.",
+    "spec_ref": "RFC 8615",
+    "explanation": "Well-known paths are expected to describe the host they're served from. A redirect off to another domain is unusual and worth a second look — it may be a CDN/SaaS handoff (benign) or a sign of stale DNS/config pointing at infrastructure the organization no longer controls. Remediation: confirm the destination is still owned and intended, and consider serving the content directly instead of redirecting off-host.",
+    "builtin": "corr007_offsite_redirects"
+  },
+  {
+    "id": "CORR-008",
+    "severity": "medium",
+    "confidence": "inferred",
+    "category": "disclosure",
+    "message": "No security.txt was found at all.",
+    "evidence": "presence: {{presence:security.txt}}",
+    "spec_ref": "RFC 9116",
+    "explanation": "RFC 9116 defines security.txt specifically so researchers don't have to guess how to report a vulnerability. Its complete absence means there is no standardized, discoverable channel at all. Remediation: publish a minimal RFC 9116-compliant file at /.well-known/security.txt with Contact and Expires.",
+    "when": { "presence": { "path": "security.txt", "in": ["absent", "soft404", "error", "redirected-offsite"] } }
+  },
+  {
+    "id": "CORR-009",
+    "severity": "low",
+    "confidence": "inferred",
+    "category": "disclosure",
+    "message": "Sole contact method is a web form.",
+    "evidence": "{{fact:security.txt.contact_values}}",
+    "spec_ref": "RFC 9116 §2.5.3",
+    "explanation": "A web form as the only Contact value can't be scripted, doesn't support attachments well, and gives a researcher no way to verify their report was received or to follow up asynchronously. Remediation: add a mailto: (ideally PGP-capable) or tel: Contact value alongside the form.",
+    "when": {
+      "and": [
+        { "presence": { "path": "security.txt", "in": ["present"] } },
+        { "fact": { "path": "security.txt", "key": "contact_form_only", "op": "eq", "value": "true" } }
+      ]
+    }
+  },
+  {
+    "id": "CORR-010",
+    "severity": "info",
+    "confidence": "inferred",
+    "category": "disclosure",
+    "message": "security.txt Contact resolves to a different registrable domain than the target.",
+    "evidence": "{{fact:security.txt.contact_external_domain}}",
+    "spec_ref": "RFC 9116 §2.5.3",
+    "explanation": "It's common and legitimate for a disclosure program to be run through a third party (a bug bounty platform, a shared group mailbox domain, a parent company). This is informational context, not a defect: it tells a researcher where reports actually land.",
+    "when": {
+      "and": [
+        { "presence": { "path": "security.txt", "in": ["present"] } },
+        { "fact": { "path": "security.txt", "key": "contact_external_domain", "op": "not_empty" } }
+      ]
+    }
+  },
+  {
+    "id": "CORR-011",
+    "severity": "low",
+    "confidence": "inferred",
+    "category": "disclosure",
+    "message": "Contact published without rules of engagement.",
+    "evidence": "Policy field absent",
+    "spec_ref": "RFC 9116 §2.5.8",
+    "explanation": "Without a Policy field, researchers don't know what testing is authorized, what's out of scope, or whether safe-harbor protection applies — which discourages good-faith reports and increases legal risk for both sides. Remediation: publish a Policy URL describing scope and safe harbor.",
+    "when": {
+      "and": [
+        { "presence": { "path": "security.txt", "in": ["present"] } },
+        { "fact": { "path": "security.txt", "key": "policy_present", "op": "eq", "value": "false" } }
+      ]
+    }
+  },
+  {
+    "id": "CORR-012",
+    "severity": "info",
+    "confidence": "inferred",
+    "category": "disclosure",
+    "message": "security.txt does not declare Preferred-Languages.",
+    "evidence": "Preferred-Languages field absent",
+    "spec_ref": "RFC 9116 §2.5.7",
+    "explanation": "Preferred-Languages tells international researchers what language to write their report in, avoiding an early back-and-forth or a report they hesitate to send at all. This is a minor hygiene note, not a defect.",
+    "when": {
+      "and": [
+        { "presence": { "path": "security.txt", "in": ["present"] } },
+        { "fact": { "path": "security.txt", "key": "preferred_languages_present", "op": "eq", "value": "false" } }
+      ]
+    }
+  },
+  {
+    "id": "CORR-013",
+    "severity": "medium",
+    "confidence": "inferred",
+    "category": "disclosure",
+    "message": "Published encryption key is unreachable or invalid.",
+    "evidence": "{{fact:security.txt.encryption_url}}",
+    "spec_ref": "RFC 9116 §2.5.2",
+    "explanation": "security.txt points researchers at a PGP key via Encryption so sensitive reports (e.g. active-exploit details) can be sent encrypted. If that key 404s or isn't a valid key, anyone who tries to follow the published instructions to report a serious issue securely can't.",
+    "when": {
+      "and": [
+        { "presence": { "path": "security.txt", "in": ["present"] } },
+        { "or": [
+          { "fact": { "path": "security.txt", "key": "encryption_key_reachable", "op": "eq", "value": "false" } },
+          { "finding_exists": { "path": "security.txt", "id": "SECTXT-010" } }
+        ] }
+      ]
+    }
+  },
+  {
+    "id": "CORR-014",
+    "severity": "low",
+    "confidence": "inferred",
+    "category": "disclosure",
+    "message": "Program signaling present without a published policy.",
+    "evidence": "Acknowledgments or Hiring present, Policy absent",
+    "spec_ref": "RFC 9116 §2.5.6, §2.5.8",
+    "explanation": "Acknowledgments and Hiring fields signal an active, maturing security program, but without a Policy field researchers still don't know the actual rules of engagement — the program is more developed than its own documentation suggests. Remediation: add a Policy field describing scope and safe harbor.",
+    "when": {
+      "and": [
+        { "presence": { "path": "security.txt", "in": ["present"] } },
+        { "fact": { "path": "security.txt", "key": "policy_present", "op": "eq", "value": "false" } },
+        { "or": [
+          { "fact": { "path": "security.txt", "key": "acknowledgments_present", "op": "eq", "value": "true" } },
+          { "fact": { "path": "security.txt", "key": "hiring_present", "op": "eq", "value": "true" } }
+        ] }
+      ]
+    }
+  },
+  {
+    "id": "CORR-015",
+    "severity": "medium",
+    "confidence": "certain",
+    "category": "disclosure",
+    "message": "security.txt has a duplicate Expires field or a field appearing after the signature block.",
+    "evidence": "expires_duplicate={{fact:security.txt.expires_duplicate}}, field_after_signature={{fact:security.txt.field_after_signature}}",
+    "spec_ref": "RFC 9116",
+    "explanation": "RFC 9116 treats a duplicate Expires field, and any field appearing after the PGP signature block, as spec violations — the latter is also a mild integrity concern, since content after the signature was never actually signed. Remediation: keep exactly one Expires field, and move any fields that follow the signature block back inside the signed portion.",
+    "when": {
+      "and": [
+        { "presence": { "path": "security.txt", "in": ["present"] } },
+        { "or": [
+          { "fact": { "path": "security.txt", "key": "expires_duplicate", "op": "eq", "value": "true" } },
+          { "fact": { "path": "security.txt", "key": "field_after_signature", "op": "eq", "value": "true" } }
+        ] }
+      ]
+    }
+  },
+  {
+    "id": "CORR-016",
+    "severity": "high",
+    "confidence": "certain",
+    "category": "auth",
+    "message": "openid-configuration's issuer value does not match the origin it was fetched from.",
+    "evidence": "{{fact:openid-configuration.issuer}}",
+    "spec_ref": "OpenID Connect Discovery 1.0 §4.3",
+    "explanation": "OpenID Connect Discovery requires the issuer value to identify the same origin the discovery document was retrieved from; a mismatch is a spec violation that can enable issuer confusion or make token validation ambiguous for relying parties. Remediation: correct the issuer field to exactly match the origin serving this document.",
+    "when": {
+      "and": [
+        { "presence": { "path": "openid-configuration", "in": ["present"] } },
+        { "fact": { "path": "openid-configuration", "key": "issuer_matches_origin", "op": "eq", "value": "false" } }
+      ]
+    }
+  },
+  {
+    "id": "CORR-017",
+    "severity": "medium",
+    "confidence": "inferred",
+    "category": "auth",
+    "message": "openid-configuration advertises request_uri support without requiring pre-registration.",
+    "evidence": "request_uri_parameter_supported=true, require_request_uri_registration=false",
+    "spec_ref": "OpenID Connect Discovery 1.0 §3",
+    "explanation": "Accepting an arbitrary request_uri without requiring it to be pre-registered lets a client point the authorization server at a URL it fetches server-side, which is server-side request forgery surface. Remediation: set require_request_uri_registration to true, or disable request_uri support if it isn't needed.",
+    "when": {
+      "and": [
+        { "presence": { "path": "openid-configuration", "in": ["present"] } },
+        { "fact": { "path": "openid-configuration", "key": "request_uri_parameter_supported", "op": "eq", "value": "true" } },
+        { "fact": { "path": "openid-configuration", "key": "require_request_uri_registration", "op": "eq", "value": "false" } }
+      ]
+    }
+  },
+  {
+    "id": "CORR-018",
+    "severity": "medium",
+    "confidence": "inferred",
+    "category": "auth",
+    "message": "openid-configuration's jwks_uri is on a different registrable domain than the issuer.",
+    "evidence": "{{fact:openid-configuration.jwks_uri}}",
+    "spec_ref": "OpenID Connect Discovery 1.0 §3",
+    "explanation": "Signing keys served from a different registrable domain than the issuer widen the trust boundary of the authentication system to include that other domain's security posture, and complicate reasoning about who controls token validation. This is sometimes intentional (a shared identity platform), but worth confirming.",
+    "when": {
+      "and": [
+        { "presence": { "path": "openid-configuration", "in": ["present"] } },
+        { "fact": { "path": "openid-configuration", "key": "jwks_uri_offsite", "op": "eq", "value": "true" } }
+      ]
+    }
+  },
+  {
+    "id": "CORR-019",
+    "severity": "high",
+    "confidence": "certain",
+    "category": "auth",
+    "message": "An endpoint URL in an openid or oauth document uses plaintext http://.",
+    "evidence": "see endpoint_urls on openid-configuration / oauth-authorization-server",
+    "spec_ref": "RFC 8414 §2 / OpenID Connect Discovery 1.0 §3",
+    "explanation": "Authorization, token, and JWKS endpoints carry credentials, authorization codes, and tokens; serving any of them over plaintext HTTP exposes that traffic to on-path interception. Remediation: serve every OAuth/OIDC endpoint over HTTPS only.",
+    "when": {
+      "or": [
+        { "fact": { "path": "openid-configuration", "key": "endpoint_urls", "op": "contains", "value": "http://" } },
+        { "fact": { "path": "oauth-authorization-server", "key": "endpoint_urls", "op": "contains", "value": "http://" } }
+      ]
+    }
+  },
+  {
+    "id": "CORR-020",
+    "severity": "medium",
+    "confidence": "inferred",
+    "category": "auth",
+    "message": "openid-configuration and oauth-authorization-server disagree on issuer or a shared endpoint value.",
+    "evidence": "see issuer/token_endpoint facts on both documents",
+    "spec_ref": "RFC 8414 / OpenID Connect Discovery 1.0",
+    "explanation": "When both discovery documents are published, relying parties may read either one; if they disagree about the issuer or token endpoint, different clients can end up trusting different infrastructure for the same nominal service. Remediation: ensure both documents are generated from the same source of truth.",
+    "when": {
+      "and": [
+        { "presence": { "path": "openid-configuration", "in": ["present"] } },
+        { "presence": { "path": "oauth-authorization-server", "in": ["present"] } },
+        { "or": [
+          { "fact_compare": { "a": { "path": "openid-configuration", "key": "issuer" }, "b": { "path": "oauth-authorization-server", "key": "issuer" }, "op": "conflict" } },
+          { "fact_compare": { "a": { "path": "openid-configuration", "key": "token_endpoint" }, "b": { "path": "oauth-authorization-server", "key": "token_endpoint" }, "op": "conflict" } }
+        ] }
+      ]
+    }
+  },
+  {
+    "id": "CORR-021",
+    "severity": "medium",
+    "confidence": "inferred",
+    "category": "mail",
+    "message": "Policy published but never activated.",
+    "evidence": "_mta-sts DNS TXT record absent",
+    "spec_ref": "RFC 8461 §3.1",
+    "explanation": "MTA-STS policy files only take effect once the corresponding _mta-sts DNS TXT record exists, since that's what tells sending mail servers a policy is available at all. A policy file with no activation record is inert. Remediation: publish the _mta-sts TXT record (see --fix).",
+    "when": {
+      "and": [
+        { "presence": { "path": "mta-sts.txt", "in": ["present"] } },
+        { "fact": { "path": "mta-sts.txt", "key": "mta_sts_dns_txt_present", "op": "eq", "value": "false" } }
+      ]
+    }
+  },
+  {
+    "id": "CORR-022",
+    "severity": "medium",
+    "confidence": "inferred",
+    "category": "mail",
+    "message": "mta-sts.txt mx patterns do not match the domain's actual MX records.",
+    "spec_ref": "RFC 8461 §3",
+    "explanation": "If a real MX host isn't covered by any mx pattern in the policy, mail delivered to that host won't be validated against MTA-STS at all, silently narrowing the protection the policy is meant to provide. Remediation: add an mx pattern (or wildcard) covering every MX host actually in use.",
+    "builtin": "corr022_mx_mismatch"
+  },
+  {
+    "id": "CORR-023",
+    "severity": "low",
+    "confidence": "inferred",
+    "category": "mail",
+    "message": "Leftover certificate validation artifact.",
+    "evidence": "acme-challenge returned 200 with content",
+    "spec_ref": "RFC 8555",
+    "explanation": "A live response under /.well-known/acme-challenge/ outside of an active issuance request is usually a stale token left behind by a certificate automation tool. It's low risk but worth cleaning up as part of routine hygiene.",
+    "when": { "presence": { "path": "acme-challenge", "in": ["present"] } }
+  },
+  {
+    "id": "CORR-024",
+    "severity": "medium",
+    "confidence": "inferred",
+    "category": "hygiene",
+    "message": "Two well-known documents assert conflicting values for the same logical fact.",
+    "spec_ref": "n/a",
+    "explanation": "magpie normalizes selected facts (issuer, organization identity, contact domain, app identity) across every document it parses. When two documents both assert a value for the same logical fact and those values disagree, the underlying configuration is generating conflicting metadata — a strong signal of stale content in at least one of the two. This rule exists to catch conflicts no specific rule anticipated; it compares a normalized fact map rather than hardcoding path pairs.",
+    "builtin": "corr024_generic_disagreement"
+  },
+  {
+    "id": "CORR-025",
+    "severity": "high",
+    "confidence": "inferred",
+    "category": "disclosure",
+    "message": "Mature published infrastructure with no channel to receive a vulnerability report.",
+    "evidence": "3+ well-known documents present and validating cleanly; security.txt absent",
+    "spec_ref": "RFC 9116",
+    "explanation": "Three or more cleanly-validating well-known documents indicate a team that maintains this surface deliberately and competently — which makes the absence of a security.txt harder to explain as an oversight and more likely to mean no one has been assigned to own it. Remediation: publish an RFC 9116 security.txt; this organization clearly has the operational maturity to maintain one.",
+    "when": {
+      "and": [
+        { "clean_count_min": { "min": 3 } },
+        { "presence": { "path": "security.txt", "in": ["absent", "soft404", "error", "redirected-offsite"] } }
+      ]
+    }
+  }
+]

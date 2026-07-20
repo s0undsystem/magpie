@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/harborproject/magpie/internal/domainutil"
 	"github.com/harborproject/magpie/internal/finding"
 	"github.com/harborproject/magpie/internal/scan"
 )
@@ -47,10 +48,11 @@ type sectxtLine struct {
 }
 
 type parsedSecurityTxt struct {
-	Lines         []sectxtLine
-	Fields        map[string][]string // canonical name -> values in file order
-	HasSignature  bool
-	SignatureType string // "clearsign", "detached", ""
+	Lines               []sectxtLine
+	Fields              map[string][]string // canonical name -> values in file order
+	HasSignature        bool
+	SignatureType       string // "clearsign", "detached", ""
+	FieldAfterSignature bool
 }
 
 func canonicalFieldName(name string) (string, bool) {
@@ -72,6 +74,7 @@ func parseSecurityTxt(body []byte) parsedSecurityTxt {
 
 	inClearsignHeader := false
 	inSignatureBlock := false
+	pastSignature := false
 
 	for i, raw := range rawLines {
 		lineNo := i + 1
@@ -102,6 +105,7 @@ func parseSecurityTxt(body []byte) parsedSecurityTxt {
 			continue
 		case trimmed == "-----END PGP SIGNATURE-----":
 			inSignatureBlock = false
+			pastSignature = true
 			p.Lines = append(p.Lines, sectxtLine{LineNo: lineNo, Raw: raw, Comment: true})
 			continue
 		case inSignatureBlock:
@@ -128,6 +132,9 @@ func parseSecurityTxt(body []byte) parsedSecurityTxt {
 		value := strings.TrimSpace(m[2])
 		p.Lines = append(p.Lines, sectxtLine{LineNo: lineNo, Raw: raw, Name: canonical, Value: value})
 		p.Fields[canonical] = append(p.Fields[canonical], value)
+		if pastSignature {
+			p.FieldAfterSignature = true
+		}
 	}
 
 	return p
@@ -158,6 +165,7 @@ func (SecurityTxtValidator) Validate(ctx Context) Output {
 	} else {
 		out.Facts["contact_count"] = strconv.Itoa(len(p.Fields["Contact"]))
 		out.Facts["contact_values"] = strings.Join(p.Fields["Contact"], "|")
+		analyzeContacts(p.Fields["Contact"], ctx.Host, &out)
 	}
 
 	if len(p.Fields["Expires"]) == 0 {
@@ -212,11 +220,59 @@ func (SecurityTxtValidator) Validate(ctx Context) Output {
 	out.Facts["preferred_languages_present"] = strconv.FormatBool(len(p.Fields["Preferred-Languages"]) > 0)
 	out.Facts["acknowledgments_present"] = strconv.FormatBool(len(p.Fields["Acknowledgments"]) > 0)
 	out.Facts["hiring_present"] = strconv.FormatBool(len(p.Fields["Hiring"]) > 0)
+	out.Facts["expires_duplicate"] = strconv.FormatBool(len(p.Fields["Expires"]) > 1)
+	out.Facts["field_after_signature"] = strconv.FormatBool(p.FieldAfterSignature)
+	out.Facts["mentions_mobile_scope"] = strconv.FormatBool(anyFieldValueContains(p, "mobile"))
 	if enc := p.Fields["Encryption"]; len(enc) > 0 {
 		out.Facts["encryption_url"] = enc[0]
 	}
 
 	return out
+}
+
+// anyFieldValueContains reports whether any field value in p contains
+// substr, case-insensitively.
+func anyFieldValueContains(p parsedSecurityTxt, substr string) bool {
+	substr = strings.ToLower(substr)
+	for _, values := range p.Fields {
+		for _, v := range values {
+			if strings.Contains(strings.ToLower(v), substr) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// analyzeContacts derives contact_form_only (true when every Contact value
+// is an http(s) form URL with no mailto: or tel: alternative) and
+// contact_external_domain (the first contact URL whose registrable domain
+// differs from the target host's, empty if none).
+func analyzeContacts(contacts []string, host string, out *Output) {
+	if len(contacts) == 0 {
+		return
+	}
+	allHTTP := true
+	externalDomain := ""
+	targetDomain := domainutil.Registrable(host)
+
+	for _, c := range contacts {
+		switch {
+		case strings.HasPrefix(strings.ToLower(c), "mailto:"), strings.HasPrefix(strings.ToLower(c), "tel:"):
+			allHTTP = false
+		case strings.HasPrefix(strings.ToLower(c), "http://"), strings.HasPrefix(strings.ToLower(c), "https://"):
+			if u, err := url.Parse(c); err == nil && u.Hostname() != "" {
+				if externalDomain == "" && !domainutil.SameRegistrable(u.Hostname(), targetDomain) {
+					externalDomain = u.Hostname()
+				}
+			}
+		default:
+			allHTTP = false
+		}
+	}
+
+	out.Facts["contact_form_only"] = strconv.FormatBool(allHTTP)
+	out.Facts["contact_external_domain"] = externalDomain
 }
 
 func validateExpires(raw string, out *Output) {

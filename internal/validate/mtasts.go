@@ -4,6 +4,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/harborproject/magpie/internal/finding"
 	"github.com/harborproject/magpie/internal/scan"
@@ -125,6 +126,9 @@ func validateDNSRecord(ctx Context, out *Output) {
 		m := mtaSTSDNSRecordRe.FindStringSubmatch(strings.TrimSpace(rec))
 		if m != nil {
 			out.Facts["mta_sts_dns_txt_id"] = m[1]
+			if age, ok := policyIDAgeDays(m[1]); ok {
+				out.Facts["mta_sts_dns_txt_id_age_days"] = strconv.Itoa(age)
+			}
 			return
 		}
 	}
@@ -135,6 +139,24 @@ func validateDNSRecord(ctx Context, out *Output) {
 		Message:  "The _mta-sts DNS TXT record is malformed; it must read \"v=STSv1; id=<id>\".",
 		Evidence: name, SpecRef: "RFC 8461 §3.1",
 	})
+}
+
+// policyIDAgeDays attempts to interpret a policy id as a timestamp, per the
+// common (but not mandatory) RFC 8461 convention of using one, and returns
+// its age in days. RFC 8461 does not mandate a format, so ids that don't
+// parse as a recognized timestamp return ok=false and the age is treated as
+// not inferable.
+func policyIDAgeDays(id string) (days int, ok bool) {
+	for _, layout := range []string{"20060102150405Z0700", "2006010215Z0700", time.RFC3339} {
+		normalized := id
+		if !strings.Contains(id, "+") && !strings.HasSuffix(id, "Z") && (layout == "20060102150405Z0700" || layout == "2006010215Z0700") {
+			normalized = id + "Z"
+		}
+		if t, err := time.Parse(layout, normalized); err == nil {
+			return int(time.Since(t).Hours() / 24), true
+		}
+	}
+	return 0, false
 }
 
 func first(vals []string) string {
