@@ -8,7 +8,6 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
-	"time"
 
 	"github.com/mattn/go-isatty"
 	"github.com/spf13/cobra"
@@ -16,7 +15,6 @@ import (
 	"github.com/harborproject/magpie/internal/orchestrate"
 	"github.com/harborproject/magpie/internal/render"
 	"github.com/harborproject/magpie/internal/report"
-	"github.com/harborproject/magpie/internal/version"
 )
 
 // batchResult is one domain's outcome in a -f run.
@@ -38,35 +36,30 @@ func runBatch(cmd *cobra.Command, path string) error {
 		return fmt.Errorf("no domains found in %s", path)
 	}
 
+	opts, err := buildOrchestrateOptions()
+	if err != nil {
+		return err
+	}
+	return scanAndRender(cmd, domains, opts)
+}
+
+// scanAndRender scans hosts under the global concurrency limit and renders
+// results in hosts' original order, shared by batch mode (-f) and --ct
+// (primary domain + certificate-transparency-discovered subdomains).
+func scanAndRender(cmd *cobra.Command, hosts []string, opts orchestrate.Options) error {
 	filter, err := buildFilter()
 	if err != nil {
 		return err
 	}
-	var rulesOverlay []byte
-	if scan.rulesFile != "" {
-		rulesOverlay, err = os.ReadFile(scan.rulesFile)
-		if err != nil {
-			return fmt.Errorf("reading --rules file: %w", err)
-		}
-	}
 
-	opts := orchestrate.Options{
-		Concurrency:  scan.concurrency,
-		RatePerSec:   float64(scan.concurrency),
-		Timeout:      time.Duration(scan.timeoutSecs) * time.Second,
-		UserAgent:    version.UserAgent(""),
-		MaxRedirects: 5,
-		RulesOverlay: rulesOverlay,
-	}
-
-	results := make([]batchResult, len(domains))
+	results := make([]batchResult, len(hosts))
 	sem := make(chan struct{}, scan.globalConcurrency)
 	var wg sync.WaitGroup
 
 	stderr := cmd.ErrOrStderr()
-	progress := newProgress(stderr, len(domains))
+	progress := newProgress(stderr, len(hosts))
 
-	for i, host := range domains {
+	for i, host := range hosts {
 		wg.Add(1)
 		go func(i int, host string) {
 			defer wg.Done()

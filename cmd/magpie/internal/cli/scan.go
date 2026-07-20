@@ -74,8 +74,8 @@ func addScanFlags(cmd *cobra.Command) {
 	f.BoolVar(&scan.watch, "watch", false, "run continuously, re-checking on --interval")
 	f.StringVar(&scan.interval, "interval", "6h", "re-check interval for --watch")
 	f.StringVar(&scan.webhook, "webhook", "", "POST the change set as JSON to this URL on each --watch tick")
-	f.BoolVar(&scan.ct, "ct", false, "expand scan to subdomains found via public certificate transparency logs (crt.sh); no enumeration or probing")
-	f.IntVar(&scan.ctLimit, "ct-limit", 50, "maximum number of CT-discovered subdomains to scan")
+	f.BoolVar(&scan.ct, "ct", false, "off by default. Expand the scan to subdomains found in public certificate transparency logs (crt.sh). This only reads certificates already issued and logged by public CAs; magpie performs no DNS brute forcing, wordlist enumeration, or probing to find subdomains.")
+	f.IntVar(&scan.ctLimit, "ct-limit", 50, "with --ct, cap on how many discovered subdomains to scan")
 }
 
 func runScan(cmd *cobra.Command, args []string) error {
@@ -92,21 +92,9 @@ func runScan(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	var rulesOverlay []byte
-	if scan.rulesFile != "" {
-		rulesOverlay, err = os.ReadFile(scan.rulesFile)
-		if err != nil {
-			return fmt.Errorf("reading --rules file: %w", err)
-		}
-	}
-
-	opts := orchestrate.Options{
-		Concurrency:  scan.concurrency,
-		RatePerSec:   float64(scan.concurrency),
-		Timeout:      time.Duration(scan.timeoutSecs) * time.Second,
-		UserAgent:    version.UserAgent(""),
-		MaxRedirects: 5,
-		RulesOverlay: rulesOverlay,
+	opts, err := buildOrchestrateOptions()
+	if err != nil {
+		return err
 	}
 
 	if scan.fix {
@@ -115,6 +103,10 @@ func runScan(cmd *cobra.Command, args []string) error {
 
 	if scan.watch {
 		return runWatch(cmd, host, opts)
+	}
+
+	if scan.ct {
+		return runCT(cmd, host, opts)
 	}
 
 	rep, err := orchestrate.Run(cmd.Context(), host, opts)
@@ -184,6 +176,28 @@ func runDiff(cmd *cobra.Command, rep report.Report) error {
 		os.Exit(1)
 	}
 	return nil
+}
+
+// buildOrchestrateOptions assembles orchestrate.Options from scan flags,
+// shared by single-domain scans, batch mode, and --ct.
+func buildOrchestrateOptions() (orchestrate.Options, error) {
+	var rulesOverlay []byte
+	if scan.rulesFile != "" {
+		data, err := os.ReadFile(scan.rulesFile)
+		if err != nil {
+			return orchestrate.Options{}, fmt.Errorf("reading --rules file: %w", err)
+		}
+		rulesOverlay = data
+	}
+
+	return orchestrate.Options{
+		Concurrency:  scan.concurrency,
+		RatePerSec:   float64(scan.concurrency),
+		Timeout:      time.Duration(scan.timeoutSecs) * time.Second,
+		UserAgent:    version.UserAgent(""),
+		MaxRedirects: 5,
+		RulesOverlay: rulesOverlay,
+	}, nil
 }
 
 func buildFilter() (finding.Filter, error) {
