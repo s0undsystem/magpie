@@ -1,4 +1,5 @@
 /magpie
+/bin/
 /dist/
 *.test
 .DS_Store

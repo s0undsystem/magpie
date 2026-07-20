@@ -31,5 +31,11 @@ func newRootCmd() *cobra.Command {
 	root.AddCommand(newExplainCmd())
 	root.AddCommand(newDoctorCmd())
 
+	defaultHelp := root.HelpFunc()
+	root.SetHelpFunc(func(cmd *cobra.Command, args []string) {
+		printBanner(cmd.OutOrStdout())
+		defaultHelp(cmd, args)
+	})
+
 	return root
 }
