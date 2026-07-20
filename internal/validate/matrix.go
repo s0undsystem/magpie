@@ -1,0 +1,64 @@
+package validate
+
+import (
+	"encoding/json"
+
+	"github.com/harborproject/magpie/internal/scan"
+)
+
+func init() {
+	Register(MatrixServerValidator{})
+	Register(MatrixClientValidator{})
+}
+
+// MatrixServerValidator extracts facts from /.well-known/matrix/server (the
+// Matrix server-server delegation document). Like OAuthAuthServerValidator,
+// this is not one of magpie's required validators — it exists only to feed
+// the inference layer's Matrix homeserver detection.
+type MatrixServerValidator struct{}
+
+func (MatrixServerValidator) Path() string { return "matrix/server" }
+
+type matrixServerDoc struct {
+	Server string `json:"m.server"`
+}
+
+func (MatrixServerValidator) Validate(ctx Context) Output {
+	out := Output{Facts: Facts{}}
+	if ctx.Result.Presence != scan.PresencePresent {
+		return out
+	}
+	var doc matrixServerDoc
+	if err := json.Unmarshal(ctx.Result.Body, &doc); err != nil || doc.Server == "" {
+		return out
+	}
+	out.Facts["server_name"] = doc.Server
+	return out
+}
+
+// MatrixClientValidator extracts facts from /.well-known/matrix/client (the
+// Matrix client-server delegation document).
+type MatrixClientValidator struct{}
+
+func (MatrixClientValidator) Path() string { return "matrix/client" }
+
+type matrixHomeserverRef struct {
+	BaseURL string `json:"base_url"`
+}
+
+type matrixClientDoc struct {
+	Homeserver matrixHomeserverRef `json:"m.homeserver"`
+}
+
+func (MatrixClientValidator) Validate(ctx Context) Output {
+	out := Output{Facts: Facts{}}
+	if ctx.Result.Presence != scan.PresencePresent {
+		return out
+	}
+	var doc matrixClientDoc
+	if err := json.Unmarshal(ctx.Result.Body, &doc); err != nil || doc.Homeserver.BaseURL == "" {
+		return out
+	}
+	out.Facts["homeserver_base_url"] = doc.Homeserver.BaseURL
+	return out
+}

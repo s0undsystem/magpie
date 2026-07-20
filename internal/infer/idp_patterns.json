@@ -1,0 +1,14 @@
+[
+  { "provider": "Okta", "match": "okta.com" },
+  { "provider": "Okta", "match": "oktapreview.com" },
+  { "provider": "Okta", "match": "okta-emea.com" },
+  { "provider": "Microsoft Entra ID", "match": "login.microsoftonline.com" },
+  { "provider": "Microsoft Entra ID", "match": "sts.windows.net" },
+  { "provider": "Auth0", "match": "auth0.com" },
+  { "provider": "Ping Identity", "match": "pingone.com" },
+  { "provider": "Ping Identity", "match": "pingidentity.com" },
+  { "provider": "Google", "match": "accounts.google.com" },
+  { "provider": "AWS Cognito", "match": "cognito-idp." },
+  { "provider": "AWS Cognito", "match": "amazonaws.com/cognito" },
+  { "provider": "Keycloak", "match": "/realms/" }
+]
