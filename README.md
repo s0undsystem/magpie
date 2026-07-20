@@ -63,6 +63,14 @@ Requires Go (see `go.mod` for the minimum version). `make build` installs
 nothing outside the repo; `./bin/magpie` is a self-contained binary you can
 move wherever you like.
 
+**Put it on your `PATH`** so you can just run `magpie` from anywhere, instead of `./bin/magpie`:
+
+```sh
+sudo cp bin/magpie /usr/local/bin/magpie
+```
+
+(or, without `sudo`: `go build -o "$(go env GOPATH)/bin/magpie" ./cmd/magpie`, as long as `$(go env GOPATH)/bin` is on your `PATH`.)
+
 ## Usage
 
 **Single domain**
