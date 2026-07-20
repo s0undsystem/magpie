@@ -1,0 +1,3 @@
+Contact: mailto:security@example.org
+Expires: 2099-01-01T00:00:00Z
+Canonical: https://example.org/.well-known/security.txt

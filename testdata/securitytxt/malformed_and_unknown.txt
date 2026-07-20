@@ -1,0 +1,5 @@
+Contact: mailto:security@example.org
+Expires: 2099-01-01T00:00:00Z
+This line has no colon and is not a comment
+X-Custom-Field: some value
+Preferred-Languages en

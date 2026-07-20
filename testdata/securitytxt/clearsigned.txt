@@ -1,0 +1,12 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA256
+
+Contact: mailto:security@example.org
+Expires: 2099-01-01T00:00:00Z
+Encryption: https://example.org/pgp-key.txt
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEExamplefakefakefakefakefakefakefakeFAKEFAKEFAKE
+AAoJEExamplefakefakefakefakefakefakefakefakefakefakefakefake==
+=fake
+-----END PGP SIGNATURE-----

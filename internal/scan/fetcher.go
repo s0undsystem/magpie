@@ -72,10 +72,10 @@ type Result struct {
 	// RedirectOffsiteTo is the hostname a redirect chain left the original
 	// host for, set only when Presence == PresenceRedirectedOffsite.
 	RedirectOffsiteTo string
-	TTFB               time.Duration
-	Total              time.Duration
-	Server             string
-	Err                string
+	TTFB              time.Duration
+	Total             time.Duration
+	Server            string
+	Err               string
 }
 
 // Fetcher performs the passive, read-only well-known scan for a single
