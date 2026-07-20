@@ -6,11 +6,35 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/harborproject/magpie/internal/explain"
 	"github.com/harborproject/magpie/internal/finding"
 	"github.com/harborproject/magpie/internal/scan"
 )
 
-func init() { Register(AssetLinksValidator{}) }
+func init() {
+	Register(AssetLinksValidator{})
+
+	explain.Register(explain.Doc{
+		ID: "AAL-001", Severity: finding.SeverityHigh, Confidence: finding.ConfidenceCertain, Category: finding.CategoryMobile,
+		Message: "assetlinks.json is not a valid JSON array of Digital Asset Links statements.", SpecRef: "Android Statements API",
+		Explanation: "Android's Digital Asset Links verification expects a top-level JSON array; anything else and Android will silently fail to establish the app-to-website link (breaking App Links / Smart Lock). Remediation: fix whatever generates this file so it emits a JSON array of statement objects.",
+	})
+	explain.Register(explain.Doc{
+		ID: "AAL-002", Severity: finding.SeverityMedium, Confidence: finding.ConfidenceCertain, Category: finding.CategoryMobile,
+		Message: "An assetlinks.json statement is missing relation or target.package_name.", SpecRef: "Android Statements API",
+		Explanation: "Each statement needs both relation and target.package_name to mean anything to Android's verifier; a statement missing either is inert. Remediation: ensure every statement object has a non-empty relation array and target.package_name.",
+	})
+	explain.Register(explain.Doc{
+		ID: "AAL-003", Severity: finding.SeverityLow, Confidence: finding.ConfidenceCertain, Category: finding.CategoryMobile,
+		Message: "An assetlinks.json relation string does not match the expected \"namespace/permission\" format.", SpecRef: "Android Statements API",
+		Explanation: "Relation strings follow a namespace/permission convention (e.g. delegate_permission/common.handle_all_urls); a value that doesn't match this shape is likely a typo that will cause Android to ignore the statement. Remediation: use one of the documented relation strings.",
+	})
+	explain.Register(explain.Doc{
+		ID: "AAL-004", Severity: finding.SeverityMedium, Confidence: finding.ConfidenceCertain, Category: finding.CategoryMobile,
+		Message: "An assetlinks.json sha256_cert_fingerprints entry is not a valid colon-separated SHA-256 fingerprint.", SpecRef: "Android Statements API",
+		Explanation: "A malformed fingerprint means Android can never match the app's actual signing certificate against this statement, so the link will simply never verify. Remediation: regenerate the fingerprint as 32 uppercase colon-separated hex byte pairs, e.g. via `keytool -list -v`.",
+	})
+}
 
 // AssetLinksValidator validates /.well-known/assetlinks.json against the
 // Android Statements API (Digital Asset Links).

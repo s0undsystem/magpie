@@ -6,11 +6,50 @@ import (
 	"strings"
 	"time"
 
+	"github.com/harborproject/magpie/internal/explain"
 	"github.com/harborproject/magpie/internal/finding"
 	"github.com/harborproject/magpie/internal/scan"
 )
 
-func init() { Register(MTASTSValidator{}) }
+func init() {
+	Register(MTASTSValidator{})
+
+	explain.Register(explain.Doc{
+		ID: "MTASTS-001", Severity: finding.SeverityLow, Confidence: finding.ConfidenceCertain, Category: finding.CategoryMail,
+		Message: "mta-sts.txt is in testing mode; enforcement is not yet active.", SpecRef: "RFC 8461 §5",
+		Explanation: "testing mode collects failure reports without actually enforcing TLS, and is meant as a transitional step before enforce. A policy stuck in testing provides no real protection. Remediation: review any collected TLS-RPT reports, then switch mode to enforce once satisfied.",
+	})
+	explain.Register(explain.Doc{
+		ID: "MTASTS-002", Severity: finding.SeverityMedium, Confidence: finding.ConfidenceCertain, Category: finding.CategoryMail,
+		Message: "mta-sts.txt explicitly disables MTA-STS enforcement (mode: none).", SpecRef: "RFC 8461 §5",
+		Explanation: "mode: none tells sending servers to stop applying MTA-STS entirely, effectively publishing a policy that says \"don't protect this domain's mail.\" This is sometimes an intentional rollback, but is worth confirming. Remediation: switch to enforce (or testing while validating), or remove mta-sts.txt entirely if MTA-STS isn't wanted at all.",
+	})
+	explain.Register(explain.Doc{
+		ID: "MTASTS-003", Severity: finding.SeverityHigh, Confidence: finding.ConfidenceCertain, Category: finding.CategoryMail,
+		Message: "mta-sts.txt is missing a valid mode field; it must be one of enforce, testing, or none.", SpecRef: "RFC 8461 §3",
+		Explanation: "mode is a required field with exactly three legal values; anything else means compliant sending servers can't interpret the policy at all. Remediation: set mode to enforce, testing, or none.",
+	})
+	explain.Register(explain.Doc{
+		ID: "MTASTS-004", Severity: finding.SeverityMedium, Confidence: finding.ConfidenceCertain, Category: finding.CategoryMail,
+		Message: "mta-sts.txt's max_age is missing or outside the valid range (1 to 31557600 seconds).", SpecRef: "RFC 8461 §3",
+		Explanation: "max_age tells sending servers how long to cache this policy; RFC 8461 caps it at 31557600 seconds (one year) and requires it to be present. A missing or out-of-range value is a spec violation that can cause unpredictable caching behavior. Remediation: set max_age to a sane value such as 604800 (one week) up to 31557600.",
+	})
+	explain.Register(explain.Doc{
+		ID: "MTASTS-005", Severity: finding.SeverityHigh, Confidence: finding.ConfidenceCertain, Category: finding.CategoryMail,
+		Message: "mta-sts.txt does not list any mx patterns; no mail servers are covered by the policy.", SpecRef: "RFC 8461 §3",
+		Explanation: "Without at least one mx pattern, the policy covers no mail servers at all, making it a no-op regardless of mode. Remediation: add one or more mx entries (wildcards like *.example.com are allowed) covering the domain's actual MX hosts.",
+	})
+	explain.Register(explain.Doc{
+		ID: "MTASTS-006", Severity: finding.SeverityMedium, Confidence: finding.ConfidenceLikely, Category: finding.CategoryMail,
+		Message: "The _mta-sts DNS TXT record is malformed; it must read \"v=STSv1; id=<id>\".", SpecRef: "RFC 8461 §3.1",
+		Explanation: "Sending servers use the _mta-sts TXT record's id value to detect when a policy has changed and needs refetching. A malformed record breaks that detection even if mta-sts.txt itself is fine. Remediation: publish a TXT record at _mta-sts.<domain> reading exactly \"v=STSv1; id=<some-opaque-id>\".",
+	})
+	explain.Register(explain.Doc{
+		ID: "MTASTS-007", Severity: finding.SeverityHigh, Confidence: finding.ConfidenceCertain, Category: finding.CategoryMail,
+		Message: "mta-sts.txt is missing or declares an unsupported version; it must be \"STSv1\".", SpecRef: "RFC 8461 §3",
+		Explanation: "version is a required field and RFC 8461 defines exactly one legal value, STSv1. Anything else means the file isn't recognized as a valid MTA-STS policy at all. Remediation: add or correct \"version: STSv1\" as the first field.",
+	})
+}
 
 // MTASTSValidator validates /.well-known/mta-sts.txt against RFC 8461.
 type MTASTSValidator struct{}

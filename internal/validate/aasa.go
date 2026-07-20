@@ -5,11 +5,30 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/harborproject/magpie/internal/explain"
 	"github.com/harborproject/magpie/internal/finding"
 	"github.com/harborproject/magpie/internal/scan"
 )
 
-func init() { Register(AASAValidator{}) }
+func init() {
+	Register(AASAValidator{})
+
+	explain.Register(explain.Doc{
+		ID: "AASA-001", Severity: finding.SeverityHigh, Confidence: finding.ConfidenceCertain, Category: finding.CategoryMobile,
+		Message: "apple-app-site-association is not valid JSON.", SpecRef: "Apple Developer Documentation: apple-app-site-association",
+		Explanation: "iOS fetches and parses this file to establish Universal Links, Shared Web Credentials, and App Clips; invalid JSON means none of that works. Remediation: fix whatever generates this file so it emits valid JSON.",
+	})
+	explain.Register(explain.Doc{
+		ID: "AASA-002", Severity: finding.SeverityLow, Confidence: finding.ConfidenceCertain, Category: finding.CategoryMobile,
+		Message: "apple-app-site-association was served with a content type other than application/json.", SpecRef: "Apple Developer Documentation: apple-app-site-association",
+		Explanation: "Apple's own documentation recommends serving this file as application/json (historically it also tolerated no extension with no content type restriction, but application/json is the safe modern default). A mismatched content type is usually harmless but is worth cleaning up. Remediation: set Content-Type: application/json for this path.",
+	})
+	explain.Register(explain.Doc{
+		ID: "AASA-003", Severity: finding.SeverityMedium, Confidence: finding.ConfidenceCertain, Category: finding.CategoryMobile,
+		Message: "apple-app-site-association does not contain applinks, webcredentials, or appclips sections.", SpecRef: "Apple Developer Documentation: apple-app-site-association",
+		Explanation: "A file with none of the three recognized top-level sections doesn't actually configure anything — it's present but functionally empty. Remediation: add an applinks, webcredentials, or appclips section, or remove the file if it isn't needed.",
+	})
+}
 
 // AASAValidator validates /.well-known/apple-app-site-association.
 type AASAValidator struct{}
