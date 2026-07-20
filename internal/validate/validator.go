@@ -4,6 +4,8 @@
 package validate
 
 import (
+	"strings"
+
 	"github.com/harborproject/magpie/internal/finding"
 	"github.com/harborproject/magpie/internal/scan"
 )
@@ -33,6 +35,10 @@ type Context struct {
 	// Fetch performs a single auxiliary GET against an explicitly
 	// referenced URL. It is nil when auxiliary fetches are disabled.
 	Fetch AuxFetcher
+	// LookupTXT resolves DNS TXT records for a name, used by validators
+	// that cross-check a well-known document against DNS (e.g. mta-sts.txt
+	// against _mta-sts.<host>). It is nil when DNS lookups are disabled.
+	LookupTXT func(name string) ([]string, error)
 }
 
 // Output is what a Validator returns.
@@ -78,4 +84,13 @@ func finalURL(r scan.Result) string {
 		return r.RedirectChain[len(r.RedirectChain)-1]
 	}
 	return r.URL
+}
+
+// baseContentType strips any parameters (e.g. "; charset=utf-8") from a
+// Content-Type header value.
+func baseContentType(ct string) string {
+	if i := strings.IndexByte(ct, ';'); i >= 0 {
+		ct = ct[:i]
+	}
+	return strings.TrimSpace(ct)
 }
